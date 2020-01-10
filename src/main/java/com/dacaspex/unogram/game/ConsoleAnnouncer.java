@@ -22,13 +22,18 @@ public class ConsoleAnnouncer implements Announcer {
     }
 
     @Override
-    public void gameStarted(Party party, UnoGame game) {
+    public void gameStarted(UnoGame game) {
         System.out.println("Game has started");
     }
 
     @Override
     public void playedInvalidCard(Player player, Card card, UnoGame game) {
         System.out.println("Player played an invalid card");
+    }
+
+    @Override
+    public void playedBeforeTurn(Player player, UnoGame game) {
+        System.out.println("Player played before turn");
     }
 
     @Override

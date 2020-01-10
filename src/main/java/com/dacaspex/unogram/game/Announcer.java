@@ -9,9 +9,11 @@ public interface Announcer {
 
     void playerNotInParty(Player player);
 
-    void gameStarted(Party party, UnoGame game);
+    void gameStarted(UnoGame game);
 
     void playedInvalidCard(Player player, Card card, UnoGame game);
+
+    void playedBeforeTurn(Player player, UnoGame game);
 
     void playedCard(Player player, Card card, UnoGame game);
 

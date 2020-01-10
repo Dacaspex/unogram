@@ -73,19 +73,26 @@ public class TelegramAnnouncer implements Announcer {
     }
 
     @Override
-    public void gameStarted(Party party, UnoGame game) {
+    public void gameStarted(UnoGame game) {
         // TODO: Try/catch
+
+        // TODO: Notify group that game has started
+        // TODO: Shows cards to each player
+        // TODO: Show top of discard pile in the group
+        // TODO: Notify starting player privately and in the group
+        // TODO: Show players and player order in the group (pinned message?)
 
         // Notify players about their hand
         for (Player player : game.getParty().getPlayers()) {
+            Chat chat = chatMap.get(player);
             String message = String.format(
                     "@%s, here are your cards\n%s",
-                    player.getUser().getUserName(),
+                    player.getUsername(),
                     formatter.formatHand(player.getHand())
             );
 
             SendMessage sendMessage = new SendMessage()
-                    .setChatId(player.getChatId())
+                    .setChatId(chat.getId())
                     .setText(message);
             try {
                 bot.execute(sendMessage);
@@ -98,7 +105,7 @@ public class TelegramAnnouncer implements Announcer {
         Deck discardPile = game.getDiscardPile();
         SendMessage startingGameMessage = new SendMessage()
                 .setChatId(groupChat.getId())
-                .setText("Starting the game, the first player to play is: " + startingPlayer.getUser().getUserName());
+                .setText("Starting the game, the first player to play is: " + startingPlayer.getUsername());
         SendMessage cardMessage = new SendMessage()
                 .setChatId(groupChat.getId())
                 .setText("Top of discard pile shows: " + discardPile.getCards().peek());
@@ -113,12 +120,84 @@ public class TelegramAnnouncer implements Announcer {
 
     @Override
     public void playedInvalidCard(Player player, Card card, UnoGame game) {
+        Chat chat = chatMap.get(player);
+        SendMessage invalidCardMessage = new SendMessage()
+                .setChatId(chat.getId())
+                .setText("That card cannot be played");
+        try {
+            bot.execute(invalidCardMessage);
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
+        }
+    }
 
+    @Override
+    public void playedBeforeTurn(Player player, UnoGame game) {
+        Chat chat = chatMap.get(player);
+        SendMessage noTurnMessage = new SendMessage()
+                .setChatId(chat.getId())
+                .setText("It is not your turn.");
+        try {
+            bot.execute(noTurnMessage);
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     public void playedCard(Player player, Card card, UnoGame game) {
+        // TODO: Don't make these private announcements, but rather public
+        // TODO: Pinned message with player order?
 
+        // TODO: Make specific methods for each card, provide information about next / previous players
+        try {
+            switch (card.getType()) {
+                case SKIP:
+                    Player skippedPlayer = game.getParty().getPrevious();
+                    SendMessage skipMessage = new SendMessage()
+                            .setChatId(chatMap.get(skippedPlayer).getId())
+                            .setText("You were skipped because of a skip card");
+                    bot.execute(skipMessage);
+                    break;
+                case REVERSE:
+                    Player reversedPlayer = game.getParty().getPrevious(2);
+                    SendMessage reverseMessage = new SendMessage()
+                            .setChatId(chatMap.get(reversedPlayer).getId())
+                            .setText("You were skipped because of a reverse card");
+                    bot.execute(reverseMessage);
+                    break;
+                case DRAW_2:
+                    Player nextPlayer = game.getParty().getCurrent();
+                    SendMessage drawMessage = new SendMessage()
+                            .setChatId(chatMap.get(nextPlayer).getId())
+                            .setText("You were forced to draw 2 cards");
+                    bot.execute(drawMessage);
+                    break;
+            }
+
+            // Notify group about card that has been played
+            Player nextPlayer = game.getParty().getCurrent();
+            SendMessage groupMessage = new SendMessage()
+                    .setChatId(groupChat.getId())
+                    .setText(
+                            String.format(
+                                    "@%s played a %s card. Next player is %s",
+                                    player.getUsername(),
+                                    card,
+                                    nextPlayer.getUsername()
+                            )
+                    );
+            bot.execute(groupMessage);
+
+            // Notify next player that it is his/her turn
+            Hand nextPlayerHand = nextPlayer.getHand();
+            SendMessage notifyNextPlayerMessage = new SendMessage()
+                    .setChatId(chatMap.get(nextPlayer).getId())
+                    .setText("It is your turn to play a card. This is your hand:\n" + formatter.formatHand(nextPlayerHand));
+            bot.execute(notifyNextPlayerMessage);
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -130,13 +209,13 @@ public class TelegramAnnouncer implements Announcer {
     public void drewCard(Player player, Card card, UnoGame game) {
         // Notify player
         SendMessage playerMessage = new SendMessage()
-                .setChatId(player.getChatId())
+                .setChatId(chatMap.get(player).getId())
                 .setText(String.format("You drew a %s card", card));
 
         // Notify group
         SendMessage groupMessage = new SendMessage()
                 .setChatId(groupChat.getId())
-                .setText(String.format("%s drew a card", player.getUser().getUserName()));
+                .setText(String.format("%s drew a card", player.getUsername()));
 
         try {
             bot.execute(playerMessage);

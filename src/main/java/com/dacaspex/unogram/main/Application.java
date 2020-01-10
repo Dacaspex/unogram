@@ -22,9 +22,9 @@ public class Application {
         ApiContextInitializer.init();
         TelegramBotsApi api = new TelegramBotsApi();
 
-        GameHandler gameHandler = new GameHandler(apiToken, "Unogram");
+        TelegramBotHandler telegramBotHandler = new TelegramBotHandler(apiToken, "Unogram");
 
-        api.registerBot(gameHandler);
+        api.registerBot(telegramBotHandler);
 
         System.out.println("Bot started");
     }
