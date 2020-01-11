@@ -47,7 +47,7 @@ public class UnoGame {
         // TODO: First card action
     }
 
-    public boolean canPlay(Player player, Card card) {
+    public boolean canPlay(Card card) {
         Card topCard = discardPile.getCards().peek();
 
         return card.getSuit() == topCard.getSuit()
@@ -57,7 +57,7 @@ public class UnoGame {
     }
 
     public void play(Player player, Card card) {
-        if (!canPlay(player, card)) {
+        if (!canPlay(card)) {
             throw new IllegalArgumentException("Card cannot be played");
         }
 
@@ -79,8 +79,6 @@ public class UnoGame {
             // Draw two cards
             draw(nextPlayer, 2);
         }
-
-        party.next();
     }
 
     public void playWild(Player player, Card card, Suit chosenSuit) {
@@ -88,7 +86,7 @@ public class UnoGame {
             throw new IllegalArgumentException("Suit must be of type WILD");
         }
 
-        if (!canPlay(player, card)) {
+        if (!canPlay(card)) {
             throw new IllegalArgumentException("Card cannot be played");
         }
 

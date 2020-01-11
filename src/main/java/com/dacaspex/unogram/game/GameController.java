@@ -59,7 +59,7 @@ public class GameController {
         }
 
         // Check if the card can be played
-        if (!game.canPlay(player, card)) {
+        if (!game.canPlay(card)) {
             announcer.playedInvalidCard(player, card, game);
 
             return;
@@ -68,19 +68,28 @@ public class GameController {
         // Play the card for that player and announce event
         game.play(player, card);
         announcer.playedCard(player, card, game);
+        party.next();
     }
 
     public void play(Player player, Card card, Suit chosenSuit) {
-        if (!isPlayersTurn(player)) {
-            return;
-        }
-
         if (card.getSuit() != Suit.WILD) {
             throw new IllegalArgumentException("Suit must be of type WILD");
         }
 
+        if (!isPlayersTurn(player)) {
+            return;
+        }
+
+        // Check if the card can be played
+        if (!game.canPlay(card)) {
+            announcer.playedInvalidCard(player, card, game);
+
+            return;
+        }
+
         game.playWild(player, card, chosenSuit);
         announcer.playedWildCard(player, card, chosenSuit, game);
+        party.next();
     }
 
     public void draw(Player player) {
@@ -90,6 +99,7 @@ public class GameController {
 
         Card drawnCard = game.draw(player);
         announcer.drewCard(player, drawnCard, game);
+        party.next();
     }
 
     private boolean isPlayersTurn(Player player) {
