@@ -6,12 +6,14 @@ import java.util.List;
 // TODO: Test methods
 public class Party {
     private final List<Player> players;
+    private Player host;
     private Order order;
     private int current;
     private boolean skip;
 
     public Party() {
         this.players = new ArrayList<>();
+        this.host = null;
         this.order = Order.CLOCKWISE;
         this.current = 0;
         this.skip = false;
@@ -19,6 +21,14 @@ public class Party {
 
     public List<Player> getPlayers() {
         return players;
+    }
+
+    public Player getHost() {
+        return host;
+    }
+
+    public void setHost(Player host) {
+        this.host = host;
     }
 
     public List<Player> getOrderedPlayers() {
@@ -40,6 +50,7 @@ public class Party {
     }
 
     public Player getNext(int n) {
+        n += skip ? 1 : 0;
         int change = order == Order.CLOCKWISE ? n : -n;
         int index = Math.floorMod(current + change, players.size());
 

@@ -1,4 +1,6 @@
-package com.dacaspex.unogram.game;
+package com.dacaspex.unogram.controller.announcements;
+
+import com.dacaspex.unogram.game.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -12,23 +14,28 @@ public class CompoundAnnouncer implements Announcer {
     }
 
     @Override
-    public void playerJoinedParty(Player player) {
-        announcers.forEach(a -> a.playerJoinedParty(player));
+    public void gameCreated(String id, Player host) {
+        announcers.forEach(a -> a.gameCreated(id, host));
     }
 
     @Override
-    public void playerLeftParty(Player player) {
-        announcers.forEach(a -> a.playerLeftParty(player));
+    public void playerJoinedParty(Player player, Party party) {
+        announcers.forEach(a -> a.playerJoinedParty(player, party));
     }
 
     @Override
-    public void playerAlreadyInParty(Player player) {
-        announcers.forEach(a -> a.playerAlreadyInParty(player));
+    public void playerLeftParty(Player player, Party party) {
+        announcers.forEach(a -> a.playerLeftParty(player, party));
     }
 
     @Override
-    public void playerNotInParty(Player player) {
-        announcers.forEach(a -> a.playerNotInParty(player));
+    public void playerAlreadyInParty(Player player, Party party) {
+        announcers.forEach(a -> a.playerAlreadyInParty(player, party));
+    }
+
+    @Override
+    public void playerNotInParty(Player player, Party party) {
+        announcers.forEach(a -> a.playerNotInParty(player, party));
     }
 
     @Override
@@ -59,5 +66,10 @@ public class CompoundAnnouncer implements Announcer {
     @Override
     public void drewCard(Player player, Card card, UnoGame game) {
         announcers.forEach(a -> a.drewCard(player, card, game));
+    }
+
+    @Override
+    public void gameFinished(UnoGame game) {
+        announcers.forEach(a -> a.gameFinished(game));
     }
 }

@@ -1,5 +1,6 @@
 package com.dacaspex.unogram.main;
 
+import com.dacaspex.unogram.telegram.TelegramBotHandler;
 import org.telegram.telegrambots.ApiContextInitializer;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
@@ -22,7 +23,10 @@ public class Application {
         ApiContextInitializer.init();
         TelegramBotsApi api = new TelegramBotsApi();
 
-        TelegramBotHandler telegramBotHandler = new TelegramBotHandler(apiToken, "Unogram");
+        TelegramBotHandler telegramBotHandler = new TelegramBotHandler(
+                apiToken,
+                "uno_dev_bot"
+        );
 
         api.registerBot(telegramBotHandler);
 

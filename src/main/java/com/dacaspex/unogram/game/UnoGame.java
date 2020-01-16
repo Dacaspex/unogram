@@ -9,12 +9,14 @@ public class UnoGame {
     private final Deck pile;
     private final Deck discardPile;
     private Suit chosenSuit;
+    private Player winner;
 
     public UnoGame(Party party, Deck pile, Deck discardPile) {
         this.party = party;
         this.pile = pile;
         this.discardPile = discardPile;
         this.chosenSuit = null;
+        this.winner = null;
     }
 
     public Party getParty() {
@@ -23,6 +25,10 @@ public class UnoGame {
 
     public Deck getDiscardPile() {
         return discardPile;
+    }
+
+    public Player getWinner() {
+        return winner;
     }
 
     public void start() {
@@ -65,6 +71,8 @@ public class UnoGame {
         player.getHand().getCards().remove(card);
         discardPile.getCards().add(card);
 
+        checkForWinner();
+
         // A normal card is played, reset the chosen suit
         chosenSuit = null;
 
@@ -94,12 +102,14 @@ public class UnoGame {
         player.getHand().getCards().remove(card);
         discardPile.getCards().add(card);
 
-        if (card.getType() == Type.WILD_CHOOSE) {
-            this.chosenSuit = chosenSuit;
-        } else {
+        checkForWinner();
+
+        if (card.getType() != Type.WILD_CHOOSE) {
             // Next player should draw four cards
             draw(party.getNext(), 4);
         }
+
+        this.chosenSuit = chosenSuit;
     }
 
     public Card draw(Player player) {
@@ -127,5 +137,17 @@ public class UnoGame {
         }
 
         return cards;
+    }
+
+    public boolean isFinished() {
+        return winner != null;
+    }
+
+    private void checkForWinner() {
+        // There is a winner iff one player has zero cards
+        this.winner = party.getPlayers().stream()
+                .filter(p -> p.getHand().getCards().isEmpty())
+                .findFirst()
+                .orElse(null);
     }
 }
