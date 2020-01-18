@@ -27,6 +27,10 @@ public class UnoGame {
         return discardPile;
     }
 
+    public Suit getChosenSuit() {
+        return chosenSuit;
+    }
+
     public Player getWinner() {
         return winner;
     }

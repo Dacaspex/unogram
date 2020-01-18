@@ -9,13 +9,17 @@ import com.dacaspex.unogram.game.Player;
 import com.dacaspex.unogram.game.Suit;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.objects.Chat;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * Telegram bot. Responsible for mapping the incoming updates from Telegram to
@@ -31,6 +35,8 @@ public class TelegramBotHandler extends TelegramLongPollingBot {
     private Map<String, TelegramAnnouncer> telegramAnnouncerMap;
     private Map<User, Player> playerMap;
 
+    private Timer timer;
+
     public TelegramBotHandler(String token, String botUsername) {
         this.token = token;
         this.botUsername = botUsername;
@@ -38,6 +44,7 @@ public class TelegramBotHandler extends TelegramLongPollingBot {
         this.playerGameControllerMap = new HashMap<>();
         this.telegramAnnouncerMap = new HashMap<>();
         this.playerMap = new HashMap<>();
+        this.timer = new Timer();
     }
 
     @Override
@@ -217,6 +224,8 @@ public class TelegramBotHandler extends TelegramLongPollingBot {
                 controller.play(player, card);
             }
 
+            deleteMessageAfterDelay(update.getMessage(), 2000);
+
             if (controller.isFinished()) {
                 controller.getParty().getPlayers().forEach(p -> {
                     playerGameControllerMap.remove(p);
@@ -244,6 +253,8 @@ public class TelegramBotHandler extends TelegramLongPollingBot {
 
             GameController controller = playerGameControllerMap.get(player);
             controller.draw(player);
+
+            deleteMessageAfterDelay(update.getMessage(), 2000);
         }
     }
 
@@ -262,5 +273,24 @@ public class TelegramBotHandler extends TelegramLongPollingBot {
     @Override
     public String getBotUsername() {
         return botUsername;
+    }
+
+    private void deleteMessageAfterDelay(Message message, int delay) {
+        timer.schedule(
+                new TimerTask() {
+                    @Override
+                    public void run() {
+                        try {
+                            execute(
+                                    new DeleteMessage(message.getChatId(), message.getMessageId())
+                            );
+                        } catch (TelegramApiException e) {
+                            e.printStackTrace();
+                            // TODO
+                        }
+                    }
+                },
+                delay
+        );
     }
 }

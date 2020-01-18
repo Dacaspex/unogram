@@ -13,9 +13,9 @@ public class TelegramFormatter {
         for (int i = 0; i < hand.getCards().size(); i++) {
             Card card = hand.getCards().get(i);
             if (game.canPlay(card)) {
-                builder.append(String.format("`[%s]` %s\n", i + 1, formatCard(card)));
+                builder.append(String.format("<code>[%s]</code> %s\n", i + 1, formatCard(card)));
             } else {
-                builder.append(String.format("<s><code>[%s]</code> %s</s>", i + 1, formatCard(card)));
+                builder.append(String.format("<s><code>[%s]</code> %s</s>\n", i + 1, formatCard(card)));
             }
         }
 
@@ -41,6 +41,14 @@ public class TelegramFormatter {
         return winningPlayers.stream()
                 .map(p -> String.format("%s %s", Emoji.EXCLAMATION_MARK, p.getUsername()))
                 .collect(Collectors.joining("\n"));
+    }
+
+    public String formatDiscardPile(UnoGame game) {
+        Card topCard = game.getDiscardPile().getCards().peek();
+
+        return game.getChosenSuit() == null
+                ? formatCard(topCard)
+                : String.format("%s (Suit changed to %s", topCard, formatSuit(game.getChosenSuit()));
     }
 
     public String formatCard(Card card) {
@@ -102,6 +110,51 @@ public class TelegramFormatter {
                 return "draw 4";
             default:
                 throw new IllegalArgumentException("No case for type");
+        }
+    }
+
+    public String formatLastPlayedCardAction(Player player, Card card, UnoGame game) {
+        switch (card.getType()) {
+            case NUMBER_0:
+            case NUMBER_1:
+            case NUMBER_2:
+            case NUMBER_3:
+            case NUMBER_4:
+            case NUMBER_5:
+            case NUMBER_6:
+            case NUMBER_7:
+            case NUMBER_8:
+            case NUMBER_9:
+                return String.format("%s played a card.", player.getUsername());
+            case SKIP:
+                return String.format(
+                        "%s was skipped by %s.",
+                        game.getParty().getPrevious(1),
+                        game.getParty().getPrevious(2)
+                );
+            case REVERSE:
+                return "The order is now reversed.";
+            case DRAW_2:
+                return String.format(
+                        "%s caused %s to draw 2 cards.",
+                        game.getParty().getPrevious(),
+                        game.getParty().getCurrent()
+                );
+            case WILD_CHOOSE:
+                return String.format(
+                        "%s changed the suit to %s",
+                        game.getParty().getPrevious(),
+                        formatSuit(game.getChosenSuit())
+                );
+            case WILD_DRAW:
+                return String.format(
+                        "%s caused %s to draw 4 cards and changed the suit to %s",
+                        game.getParty().getPrevious(),
+                        game.getParty().getCurrent(),
+                        formatSuit(game.getChosenSuit())
+                );
+            default:
+                throw new IllegalArgumentException("No formatting for type");
         }
     }
 }

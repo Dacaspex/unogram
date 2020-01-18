@@ -94,6 +94,7 @@ public class GameController {
             }
 
             game.play(player, card);
+            party.next();
             announcer.playedCard(player, card, game);
         } else {
             if (card.getSuit() != Suit.WILD) {
@@ -101,13 +102,14 @@ public class GameController {
             }
 
             game.playWild(player, card, chosenSuit);
+            party.next();
             announcer.playedWildCard(player, card, chosenSuit, game);
         }
 
+        // TODO: Event for played last card?
+
         if (game.isFinished()) {
             announcer.gameFinished(game);
-        } else {
-            party.next();
         }
     }
 
@@ -117,8 +119,8 @@ public class GameController {
         }
 
         Card drawnCard = game.draw(player);
-        announcer.drewCard(player, drawnCard, game);
         party.next();
+        announcer.drewCard(player, drawnCard, game);
     }
 
     public boolean isFinished() {

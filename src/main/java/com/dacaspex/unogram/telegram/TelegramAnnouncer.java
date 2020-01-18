@@ -20,7 +20,6 @@ public class TelegramAnnouncer implements Announcer {
     private final TelegramLongPollingBot bot;
     private final String gameId;
     private final TelegramFormatter formatter;
-    private Map<Player, User> userMap;
     private Map<Player, Chat> chatMap;
     private Timer timer;
 
@@ -32,7 +31,6 @@ public class TelegramAnnouncer implements Announcer {
     public TelegramAnnouncer(TelegramLongPollingBot bot, String gameId) {
         this.bot = bot;
         this.gameId = gameId;
-        this.userMap = new HashMap<>();
         this.chatMap = new HashMap<>();
         this.timer = new Timer();
         this.formatter = new TelegramFormatter();
@@ -41,7 +39,6 @@ public class TelegramAnnouncer implements Announcer {
     }
 
     public void addUserMapping(User user, Player player, Chat chat) {
-        userMap.put(player, user);
         chatMap.put(player, chat);
     }
 
@@ -78,15 +75,7 @@ public class TelegramAnnouncer implements Announcer {
         editMessage(playerJoinMessage, "You successfully left the game.");
 
         // Remove the leave message after some time
-        timer.schedule(
-                new TimerTask() {
-                    @Override
-                    public void run() {
-                        deleteMessage(playerJoinMessage);
-                    }
-                },
-                5000
-        );
+        deleteMessageAfterDelay(playerJoinMessage, 5000);
 
         // Update other players' messages to update the player list
         joinMessages.values().forEach(m -> editMessage(m, getJoinedMessage(party.getPlayers())));
@@ -115,7 +104,10 @@ public class TelegramAnnouncer implements Announcer {
 
         // Send and save game status message to everyone
         game.getParty().getPlayers().forEach(player -> {
-            Message gameStateMessage = sendMessage(player, getGameStateMessage(game, player));
+            Message gameStateMessage = sendMessage(
+                    player,
+                    getGameStateMessage(game, player, "Game has started!")
+            );
             gameStateMessages.put(player, gameStateMessage);
         });
     }
@@ -123,164 +115,75 @@ public class TelegramAnnouncer implements Announcer {
     @Override
     public void playedInvalidCard(Player player, Card card, UnoGame game) {
         // TODO: Explain why
-        sendMessage(player, "That card cannot be played.");
-
-        // TODO: Send and save message
-        // TODO: Delete message when player played a correct card
+        Message message = sendMessage(player, "That card cannot be played.");
+        deleteMessageAfterDelay(message, 5000);
     }
 
     @Override
     public void playedBeforeTurn(Player player, UnoGame game) {
         // TODO: Explain who's turn it is
-        sendMessage(player, "It is not your turn.");
-
-        // TODO: Revamp
+        Message message = sendMessage(player, "It is not your turn.");
+        deleteMessageAfterDelay(message, 5000);
     }
 
     @Override
     public void playedCard(Player player, Card card, UnoGame game) {
-        if (game.isFinished()) {
-            game.getParty().getPlayers().forEach(p -> sendMessage(
-                    p,
-                    String.format(
-                            "@%s played a %s and that was his last card.",
-                            player.getUsername(),
-                            formatter.formatCard(card)
-                    )
-            ));
-
-            return;
-        }
-
-        String effectText = "";
-        switch (card.getType()) {
-            case SKIP:
-                Player skippedPlayer = game.getParty().getNext();
-                effectText = String.format("%s was skipped", skippedPlayer.getUsername());
-                break;
-            case REVERSE:
-                effectText = "The order is now reversed";
-                break;
-            case DRAW_2:
-                Player nextPlayer = game.getParty().getNext();
-                effectText = String.format("%s drew 2 cards", nextPlayer.getUsername());
-                break;
-        }
-
-        Player nextPlayer = game.getParty().getNext();
-        for (Player p : game.getParty().getPlayers()) {
-            sendMessage(
-                    p,
-                    String.format(
-                            "- @%s played a %s card. %s.\n" +
-                                    "- Next player is @%s.\n",
-                            player.getUsername(),
-                            formatter.formatCard(card),
-                            effectText,
-                            nextPlayer.getUsername()
-                    )
-            );
-        }
-
-        sendMessage(
-                nextPlayer,
-                String.format(
-                        "It is your turn to play a card or draw. Here is your hand:\n%s",
-                        formatter.formatHand(nextPlayer.getHand(), game)
-                ),
-                ParseMode.HTML
+        // Update game state of all players
+        game.getParty().getPlayers().forEach(
+                p -> editMessage(
+                        gameStateMessages.get(p),
+                        getGameStateMessage(game, p, formatter.formatLastPlayedCardAction(player, card, game))
+                )
         );
+
+        // Notify the next player that has to play a card
+        Message message = sendMessage(
+                game.getParty().getCurrent(),
+                "It is your turn to play a card."
+        );
+        deleteMessageAfterDelay(message, 5000);
     }
 
     @Override
     public void playedWildCard(Player player, Card card, Suit chosenSuit, UnoGame game) {
-        if (game.isFinished()) {
-            game.getParty().getPlayers().forEach(p -> sendMessage(
-                    p,
-                    String.format(
-                            "@%s played a %s and that was his last card.",
-                            player.getUsername(),
-                            formatter.formatCard(card)
-                    )
-            ));
-
-            return;
-        }
-
-        String effectText = "";
-        switch (card.getType()) {
-            case WILD_CHOOSE:
-                effectText = String.format("The suit has changed to %s", formatter.formatSuit(chosenSuit));
-                break;
-            case WILD_DRAW:
-                Player nextPlayer = game.getParty().getNext();
-                effectText = String.format(
-                        "%s has to draw four cards and the suit changed to %s",
-                        nextPlayer.getUsername(),
-                        formatter.formatSuit(chosenSuit)
-                );
-                break;
-        }
-
-        Player nextPlayer = game.getParty().getNext();
-        for (Player p : game.getParty().getPlayers()) {
-            sendMessage(
-                    p,
-                    String.format(
-                            "- @%s played a %s card. %s.\n" +
-                                    "- Next player is @%s.\n",
-                            player.getUsername(),
-                            formatter.formatCard(card),
-                            effectText,
-                            nextPlayer.getUsername()
-                    )
-            );
-        }
-
-        sendMessage(
-                nextPlayer,
-                String.format(
-                        "It is your turn to play a card or draw. Here is your hand:\n%s",
-                        formatter.formatHand(nextPlayer.getHand(), game)
-                ),
-                ParseMode.HTML
+        // Update game state of all players
+        game.getParty().getPlayers().forEach(
+                p -> editMessage(
+                        gameStateMessages.get(p),
+                        getGameStateMessage(game, p, formatter.formatLastPlayedCardAction(player, card, game))
+                )
         );
+
+        // Notify the next player that has to play a card
+        Message message = sendMessage(
+                game.getParty().getCurrent(),
+                "It is your turn to play a card."
+        );
+        deleteMessageAfterDelay(message, 5000);
     }
 
     @Override
     public void drewCard(Player player, Card card, UnoGame game) {
-        game.getParty().getPlayers().forEach(p -> {
-            sendMessage(
-                    p,
-                    String.format(
-                            "- @%s drew a card.\n" +
-                                    "- Next player is @%s.\n" +
-                                    "- Top of discard pile still shows %s.",
-                            player.getUsername(),
-                            game.getParty().getNext().getUsername(),
-                            formatter.formatCard(game.getDiscardPile().getCards().peek())
-                    )
-            );
-        });
-
-        sendMessage(
-                player,
-                String.format("You drew a %s card", formatter.formatCard(card))
+        // Update game state of all players
+        game.getParty().getPlayers().forEach(
+                p -> editMessage(
+                        gameStateMessages.get(p),
+                        getGameStateMessage(game, p, String.format("%s drew a card", player.getUsername()))
+                )
         );
 
-        Player nextPlayer = game.getParty().getNext();
-        sendMessage(
-                nextPlayer,
-                String.format(
-                        "It is your turn to play a card or draw. Here is your hand:\n%s",
-                        formatter.formatHand(nextPlayer.getHand(), game)
-                ),
-                ParseMode.MARKDOWN
+        // Notify the next player that has to play a card
+        Message message = sendMessage(
+                game.getParty().getCurrent(),
+                "It is your turn to play a card."
         );
+        deleteMessageAfterDelay(message, 5000);
     }
 
     @Override
     public void gameFinished(UnoGame game) {
+        // TODO: Remove game state messages and replace with finish message?
+
         game.getParty().getPlayers().forEach(player -> {
             sendMessage(
                     player,
@@ -312,8 +215,7 @@ public class TelegramAnnouncer implements Announcer {
         );
     }
 
-    private String getGameStateMessage(UnoGame game, Player player) {
-        Card topCard = game.getDiscardPile().getCards().peek();
+    private String getGameStateMessage(UnoGame game, Player player, String lastAction) {
         List<Player> winningPlayers = game.getParty().getPlayers().stream()
                 .filter(p -> p.getHand().getCards().size() == 1)
                 .collect(Collectors.toList());
@@ -322,29 +224,26 @@ public class TelegramAnnouncer implements Announcer {
                         "Order: %s\n" +
                         "\n" +
                         "Discard pile: %s\n" +
+                        "Last action: %s\n" +
                         "%s" +
+                        "\n" +
                         "Your cards:\n%s",
                 formatter.formatPlayerOrder(
                         game.getParty().getOrderedPlayers(),
                         game.getParty().getCurrent()
                 ),
-                formatter.formatCard(topCard),
-                formatter.formatWinningPlayers(winningPlayers),
+                formatter.formatDiscardPile(game),
+                lastAction,
+                winningPlayers.size() > 0 ? formatter.formatWinningPlayers(winningPlayers) + "\n" : "",
                 formatter.formatHand(player.getHand(), game)
         );
     }
 
     private Message sendMessage(Player player, String message) {
-        return sendMessage(player, message, ParseMode.HTML);
-    }
-
-    private Message sendMessage(Player player, String message, String parseMode) {
         long chatId = chatMap.get(player).getId();
 
-        // TODO: Remove message
-
         try {
-            return bot.execute(new SendMessage(chatId, message).setParseMode(parseMode));
+            return bot.execute(new SendMessage(chatId, message).setParseMode(ParseMode.HTML));
         } catch (TelegramApiException e) {
             e.printStackTrace();
             // TODO
@@ -359,6 +258,7 @@ public class TelegramAnnouncer implements Announcer {
                             .setChatId(message.getChatId())
                             .setMessageId(message.getMessageId())
                             .setText(text)
+                            .setParseMode(ParseMode.HTML)
             );
         } catch (TelegramApiException e) {
             e.printStackTrace();
@@ -373,5 +273,17 @@ public class TelegramAnnouncer implements Announcer {
             e.printStackTrace();
             // TODO
         }
+    }
+
+    private void deleteMessageAfterDelay(Message message, int delay) {
+        timer.schedule(
+                new TimerTask() {
+                    @Override
+                    public void run() {
+                        deleteMessage(message);
+                    }
+                },
+                delay
+        );
     }
 }
