@@ -5,16 +5,18 @@ public enum Emoji {
     YELLOW_HEART("\uD83D\uDC9B"),
     BLUE_HEART("\uD83D\uDC99"),
     GREEN_HEART("\uD83D\uDC9A"),
-    BLACK_HEART("\uD83D\uDDA4");
+    BLACK_HEART("\uD83D\uDDA4"),
 
-    private final String id;
+    EXCLAMATION_MARK("❗");
 
-    Emoji(String id) {
-        this.id = id;
+    private final String unicode;
+
+    Emoji(String unicode) {
+        this.unicode = unicode;
     }
 
     @Override
     public String toString() {
-        return id;
+        return unicode;
     }
 }

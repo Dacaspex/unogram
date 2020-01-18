@@ -8,20 +8,26 @@ public class GameController {
     private final String id;
     private final Announcer announcer;
     private final Party party;
+    private final Options options;
     private UnoGame game;
 
     public GameController(String id, Announcer announcer) {
         this.id = id;
         this.announcer = announcer;
+        this.options = Options.createStandard();
         this.party = new Party();
+    }
+
+    public String getId() {
+        return id;
     }
 
     public Party getParty() {
         return party;
     }
 
-    public String getId() {
-        return id;
+    public Options getOptions() {
+        return options;
     }
 
     public void create(Player host) {

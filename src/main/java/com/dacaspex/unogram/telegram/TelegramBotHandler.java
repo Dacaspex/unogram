@@ -1,12 +1,12 @@
 package com.dacaspex.unogram.telegram;
 
-import com.dacaspex.unogram.game.Card;
 import com.dacaspex.unogram.controller.GameController;
-import com.dacaspex.unogram.game.Player;
-import com.dacaspex.unogram.game.Suit;
 import com.dacaspex.unogram.controller.announcements.Announcer;
 import com.dacaspex.unogram.controller.announcements.CompoundAnnouncer;
 import com.dacaspex.unogram.controller.announcements.ConsoleAnnouncer;
+import com.dacaspex.unogram.game.Card;
+import com.dacaspex.unogram.game.Player;
+import com.dacaspex.unogram.game.Suit;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Chat;
@@ -67,7 +67,7 @@ public class TelegramBotHandler extends TelegramLongPollingBot {
 
             // The creator of the game is automatically the host
             User user = update.getMessage().getFrom();
-            Player host = new Player(update.getMessage().getFrom().getUserName());
+            Player host = createPlayerFromUpdate(update);
 
             // Player map contains all active players. If player is present, then it cannot
             // be the host of the game. He/she should first leave the game
@@ -80,7 +80,7 @@ public class TelegramBotHandler extends TelegramLongPollingBot {
             // Create a new game controller
             // TODO: Generate ID
             String id = "123";
-            TelegramAnnouncer telegramAnnouncer = new TelegramAnnouncer(this);
+            TelegramAnnouncer telegramAnnouncer = new TelegramAnnouncer(this, id);
             Announcer announcer = new CompoundAnnouncer(telegramAnnouncer, new ConsoleAnnouncer(id));
             GameController controller = new GameController(id, announcer);
 
@@ -97,7 +97,7 @@ public class TelegramBotHandler extends TelegramLongPollingBot {
             User user = update.getMessage().getFrom();
             Player player = playerMap.getOrDefault(
                     user,
-                    new Player(update.getMessage().getFrom().getUserName())
+                    createPlayerFromUpdate(update)
             );
 
             // Check if the player is already present in a game, if so, he/she cannot join this game
@@ -136,7 +136,7 @@ public class TelegramBotHandler extends TelegramLongPollingBot {
             User user = update.getMessage().getFrom();
             Player player = playerMap.getOrDefault(
                     user,
-                    new Player(update.getMessage().getFrom().getUserName())
+                    createPlayerFromUpdate(update)
             );
 
             GameController controller = playerGameControllerMap.get(player);
@@ -164,7 +164,7 @@ public class TelegramBotHandler extends TelegramLongPollingBot {
             controller.start();
         } else if (command.startsWith("play")) {
             User user = update.getMessage().getFrom();
-            Player player = playerMap.getOrDefault(user, new Player(update.getMessage().getFrom().getUserName()));
+            Player player = playerMap.getOrDefault(user, createPlayerFromUpdate(update));
 
             // Check if the player is in a game
             if (!playerGameControllerMap.containsKey(player)) {
@@ -218,15 +218,19 @@ public class TelegramBotHandler extends TelegramLongPollingBot {
             }
 
             if (controller.isFinished()) {
+                controller.getParty().getPlayers().forEach(p -> {
+                    playerGameControllerMap.remove(p);
+                });
+
                 // Game has finished, remove all mappings
+                // TODO: Get all users and remove them
                 playerMap.remove(user);
-                playerGameControllerMap.remove(player);
                 stringGameControllerMap.remove(controller.getId());
                 telegramAnnouncerMap.remove(controller.getId());
             }
         } else if (command.startsWith("draw")) {
             User user = update.getMessage().getFrom();
-            Player player = playerMap.getOrDefault(user, new Player(update.getMessage().getFrom().getUserName()));
+            Player player = playerMap.getOrDefault(user, createPlayerFromUpdate(update));
 
             // Check if the player is in a game
             if (!playerGameControllerMap.containsKey(player)) {
@@ -249,6 +253,10 @@ public class TelegramBotHandler extends TelegramLongPollingBot {
                         .setChatId(chat.getId())
                         .setText(message)
         );
+    }
+
+    private Player createPlayerFromUpdate(Update update) {
+        return new Player(String.format("@%s", update.getMessage().getFrom().getUserName()), "Telegram");
     }
 
     @Override

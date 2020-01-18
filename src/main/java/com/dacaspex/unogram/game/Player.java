@@ -1,21 +1,25 @@
 package com.dacaspex.unogram.game;
 
-import org.telegram.telegrambots.meta.api.objects.User;
-
 public class Player {
     private final String username;
+    private final String platformSource;
     private final Hand hand;
 
-    public Player(String username) {
+    public Player(String username, String platformSource) {
         this.username = username;
+        this.platformSource = platformSource;
         this.hand = new Hand();
-    }
-
-    public Hand getHand() {
-        return hand;
     }
 
     public String getUsername() {
         return username;
+    }
+
+    public String getPlatformSource() {
+        return platformSource;
+    }
+
+    public Hand getHand() {
+        return hand;
     }
 }

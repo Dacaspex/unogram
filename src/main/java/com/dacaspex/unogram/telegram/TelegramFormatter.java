@@ -7,19 +7,40 @@ import java.util.stream.Collectors;
 
 public class TelegramFormatter {
 
-    public String formatHand(Hand hand) {
+    public String formatHand(Hand hand, UnoGame game) {
         StringBuilder builder = new StringBuilder();
 
         for (int i = 0; i < hand.getCards().size(); i++) {
             Card card = hand.getCards().get(i);
-            builder.append(String.format("`[%s]` %s\n", i + 1, formatCard(card)));
+            if (game.canPlay(card)) {
+                builder.append(String.format("`[%s]` %s\n", i + 1, formatCard(card)));
+            } else {
+                builder.append(String.format("<s><code>[%s]</code> %s</s>", i + 1, formatCard(card)));
+            }
         }
 
         return builder.toString();
     }
 
-    public String formatPlayers(List<Player> players) {
-        return players.stream().map(Player::getUsername).collect(Collectors.joining(" --> "));
+    public String formatPlayerOrder(List<Player> orderedPlayers, Player currentPlayer) {
+        return orderedPlayers.stream()
+                .map(p -> p == currentPlayer
+                        ? String.format("<u>%s</u>", p.getUsername())
+                        : p.getUsername()
+                )
+                .collect(Collectors.joining(" <code>--></code> "));
+    }
+
+    public String formatPlayerList(List<Player> players) {
+        return players.stream()
+                .map(p -> String.format("- %s", p.getUsername()))
+                .collect(Collectors.joining("\n"));
+    }
+
+    public String formatWinningPlayers(List<Player> winningPlayers) {
+        return winningPlayers.stream()
+                .map(p -> String.format("%s %s", Emoji.EXCLAMATION_MARK, p.getUsername()))
+                .collect(Collectors.joining("\n"));
     }
 
     public String formatCard(Card card) {
@@ -82,9 +103,5 @@ public class TelegramFormatter {
             default:
                 throw new IllegalArgumentException("No case for type");
         }
-    }
-
-    private String capitalizeFirst(String string) {
-        return string.substring(0, 1).toUpperCase() + string.substring(1);
     }
 }
