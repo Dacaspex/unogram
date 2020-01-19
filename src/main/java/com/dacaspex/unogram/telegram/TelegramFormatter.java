@@ -129,28 +129,28 @@ public class TelegramFormatter {
             case SKIP:
                 return String.format(
                         "%s was skipped by %s.",
-                        game.getParty().getPrevious(1),
-                        game.getParty().getPrevious(2)
+                        game.getParty().getPrevious(1).getUsername(),
+                        game.getParty().getPrevious(2).getUsername()
                 );
             case REVERSE:
                 return "The order is now reversed.";
             case DRAW_2:
                 return String.format(
                         "%s caused %s to draw 2 cards.",
-                        game.getParty().getPrevious(),
-                        game.getParty().getCurrent()
+                        game.getParty().getPrevious().getUsername(),
+                        game.getParty().getCurrent().getUsername()
                 );
             case WILD_CHOOSE:
                 return String.format(
                         "%s changed the suit to %s",
-                        game.getParty().getPrevious(),
+                        game.getParty().getPrevious().getUsername(),
                         formatSuit(game.getChosenSuit())
                 );
             case WILD_DRAW:
                 return String.format(
                         "%s caused %s to draw 4 cards and changed the suit to %s",
-                        game.getParty().getPrevious(),
-                        game.getParty().getCurrent(),
+                        game.getParty().getPrevious().getUsername(),
+                        game.getParty().getCurrent().getUsername(),
                         formatSuit(game.getChosenSuit())
                 );
             default:

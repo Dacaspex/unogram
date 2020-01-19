@@ -1,5 +1,7 @@
 package com.dacaspex.unogram.main;
 
+import com.dacaspex.unogram.telegram.GameControllerStorage;
+import com.dacaspex.unogram.telegram.PlayerStorage;
 import com.dacaspex.unogram.telegram.TelegramBotHandler;
 import org.telegram.telegrambots.ApiContextInitializer;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
@@ -20,12 +22,17 @@ public class Application {
 
         String apiToken = properties.getProperty("TELEGRAM_API_TOKEN");
 
+        PlayerStorage playerStorage = new PlayerStorage();
+        GameControllerStorage controllerStorage = new GameControllerStorage();
+
         ApiContextInitializer.init();
         TelegramBotsApi api = new TelegramBotsApi();
 
         TelegramBotHandler telegramBotHandler = new TelegramBotHandler(
                 apiToken,
-                "uno_dev_bot"
+                "uno_dev_bot",
+                playerStorage,
+                controllerStorage
         );
 
         api.registerBot(telegramBotHandler);

@@ -1,22 +1,22 @@
 package com.dacaspex.unogram.game;
 
 public class Player {
+    private final String id;
     private final String username;
-    private final String platformSource;
     private final Hand hand;
 
-    public Player(String username, String platformSource) {
+    public Player(String id, String username) {
+        this.id = id;
         this.username = username;
-        this.platformSource = platformSource;
         this.hand = new Hand();
+    }
+
+    public String getId() {
+        return id;
     }
 
     public String getUsername() {
         return username;
-    }
-
-    public String getPlatformSource() {
-        return platformSource;
     }
 
     public Hand getHand() {

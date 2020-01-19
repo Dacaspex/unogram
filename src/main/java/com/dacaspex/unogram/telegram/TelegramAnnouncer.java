@@ -2,54 +2,44 @@ package com.dacaspex.unogram.telegram;
 
 import com.dacaspex.unogram.controller.announcements.Announcer;
 import com.dacaspex.unogram.game.*;
-import org.telegram.telegrambots.bots.TelegramLongPollingBot;
-import org.telegram.telegrambots.meta.api.methods.ParseMode;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
-import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
-import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.User;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class TelegramAnnouncer implements Announcer {
 
-    private final TelegramLongPollingBot bot;
+    private final TelegramSender sender;
     private final String gameId;
+    private final String botUsername;
     private final TelegramFormatter formatter;
-    private Map<Player, Chat> chatMap;
-    private Timer timer;
 
     private Message gameCreatedMessage;
     private Message forwardMessage;
     private Map<Player, Message> joinMessages;
     private Map<Player, Message> gameStateMessages;
 
-    public TelegramAnnouncer(TelegramLongPollingBot bot, String gameId) {
-        this.bot = bot;
+    public TelegramAnnouncer(TelegramSender sender, String gameId, String botUsername) {
+        this.sender = sender;
         this.gameId = gameId;
-        this.chatMap = new HashMap<>();
-        this.timer = new Timer();
+        this.botUsername = botUsername;
         this.formatter = new TelegramFormatter();
+
         this.joinMessages = new HashMap<>();
         this.gameStateMessages = new HashMap<>();
     }
 
-    public void addUserMapping(User user, Player player, Chat chat) {
-        chatMap.put(player, chat);
-    }
-
     @Override
     public void gameCreated(String id, Player host) {
-        gameCreatedMessage = sendMessage(host, getGameCreatedMessage(id, Collections.singletonList(host)));
-        forwardMessage = sendMessage(
+        gameCreatedMessage = sender.sendMessage(host, getGameCreatedMessage(id, Collections.singletonList(host)));
+        forwardMessage = sender.sendMessage(
                 host,
                 String.format(
                         "Do you want to play a game of Uno with me? Send a message to @%s with /join %s.",
-                        bot.getBotUsername(),
+                        botUsername,
                         id
                 )
         );
@@ -58,27 +48,27 @@ public class TelegramAnnouncer implements Announcer {
     @Override
     public void playerJoinedParty(Player player, Party party) {
         // Update host message with the new player that joined
-        editMessage(gameCreatedMessage, getGameCreatedMessage(gameId, party.getPlayers()));
+        sender.editMessage(gameCreatedMessage, getGameCreatedMessage(gameId, party.getPlayers()));
 
         // Update the join message to update the list of players in the game. We do this first
         // to avoid updating the new message we are about to create
-        joinMessages.values().forEach(m -> editMessage(m, getJoinedMessage(party.getPlayers())));
+        joinMessages.values().forEach(m -> sender.editMessage(m, getJoinedMessage(party.getPlayers())));
 
         // Send message to player that he joined
-        joinMessages.put(player, sendMessage(player, getJoinedMessage(party.getPlayers())));
+        joinMessages.put(player, sender.sendMessage(player, getJoinedMessage(party.getPlayers())));
     }
 
     @Override
     public void playerLeftParty(Player player, Party party) {
         // Update the message of the player that left
         Message playerJoinMessage = joinMessages.get(player);
-        editMessage(playerJoinMessage, "You successfully left the game.");
+        sender.editMessage(playerJoinMessage, "You successfully left the game.");
 
         // Remove the leave message after some time
-        deleteMessageAfterDelay(playerJoinMessage, 5000);
+        sender.deleteMessageAfterDelay(playerJoinMessage);
 
         // Update other players' messages to update the player list
-        joinMessages.values().forEach(m -> editMessage(m, getJoinedMessage(party.getPlayers())));
+        joinMessages.values().forEach(m -> sender.editMessage(m, getJoinedMessage(party.getPlayers())));
     }
 
     @Override
@@ -90,21 +80,21 @@ public class TelegramAnnouncer implements Announcer {
     public void playerNotInParty(Player player, Party party) {
         // TODO: Rename method?
         // TODO: Refactor
-        sendMessage(player, "You are not yet in the party.");
+        sender.sendMessage(player, "You are not yet in the party.");
     }
 
     @Override
     public void gameStarted(UnoGame game) {
         // Remove host messages
-        deleteMessage(gameCreatedMessage);
-        deleteMessage(forwardMessage);
+        sender.deleteMessage(gameCreatedMessage);
+        sender.deleteMessage(forwardMessage);
 
         // Remove player joined messages
-        joinMessages.values().forEach(this::deleteMessage);
+        joinMessages.values().forEach(sender::deleteMessage);
 
         // Send and save game status message to everyone
         game.getParty().getPlayers().forEach(player -> {
-            Message gameStateMessage = sendMessage(
+            Message gameStateMessage = sender.sendMessage(
                     player,
                     getGameStateMessage(game, player, "Game has started!")
             );
@@ -115,69 +105,69 @@ public class TelegramAnnouncer implements Announcer {
     @Override
     public void playedInvalidCard(Player player, Card card, UnoGame game) {
         // TODO: Explain why
-        Message message = sendMessage(player, "That card cannot be played.");
-        deleteMessageAfterDelay(message, 5000);
+        Message message = sender.sendMessage(player, "That card cannot be played.");
+        sender.deleteMessageAfterDelay(message);
     }
 
     @Override
     public void playedBeforeTurn(Player player, UnoGame game) {
         // TODO: Explain who's turn it is
-        Message message = sendMessage(player, "It is not your turn.");
-        deleteMessageAfterDelay(message, 5000);
+        Message message = sender.sendMessage(player, "It is not your turn.");
+        sender.deleteMessageAfterDelay(message);
     }
 
     @Override
     public void playedCard(Player player, Card card, UnoGame game) {
         // Update game state of all players
         game.getParty().getPlayers().forEach(
-                p -> editMessage(
+                p -> sender.editMessage(
                         gameStateMessages.get(p),
                         getGameStateMessage(game, p, formatter.formatLastPlayedCardAction(player, card, game))
                 )
         );
 
         // Notify the next player that has to play a card
-        Message message = sendMessage(
+        Message message = sender.sendMessage(
                 game.getParty().getCurrent(),
                 "It is your turn to play a card."
         );
-        deleteMessageAfterDelay(message, 5000);
+        sender.deleteMessageAfterDelay(message);
     }
 
     @Override
     public void playedWildCard(Player player, Card card, Suit chosenSuit, UnoGame game) {
         // Update game state of all players
         game.getParty().getPlayers().forEach(
-                p -> editMessage(
+                p -> sender.editMessage(
                         gameStateMessages.get(p),
                         getGameStateMessage(game, p, formatter.formatLastPlayedCardAction(player, card, game))
                 )
         );
 
         // Notify the next player that has to play a card
-        Message message = sendMessage(
+        Message message = sender.sendMessage(
                 game.getParty().getCurrent(),
                 "It is your turn to play a card."
         );
-        deleteMessageAfterDelay(message, 5000);
+        sender.deleteMessageAfterDelay(message);
     }
 
     @Override
     public void drewCard(Player player, Card card, UnoGame game) {
         // Update game state of all players
         game.getParty().getPlayers().forEach(
-                p -> editMessage(
+                p -> sender.editMessage(
                         gameStateMessages.get(p),
                         getGameStateMessage(game, p, String.format("%s drew a card", player.getUsername()))
                 )
         );
 
         // Notify the next player that has to play a card
-        Message message = sendMessage(
+        Message message = sender.sendMessage(
                 game.getParty().getCurrent(),
                 "It is your turn to play a card."
         );
-        deleteMessageAfterDelay(message, 5000);
+        sender.deleteMessageAfterDelay(message);
     }
 
     @Override
@@ -185,7 +175,7 @@ public class TelegramAnnouncer implements Announcer {
         // TODO: Remove game state messages and replace with finish message?
 
         game.getParty().getPlayers().forEach(player -> {
-            sendMessage(
+            sender.sendMessage(
                     player,
                     String.format(
                             "The game has finished and the winner is @%s",
@@ -236,54 +226,6 @@ public class TelegramAnnouncer implements Announcer {
                 lastAction,
                 winningPlayers.size() > 0 ? formatter.formatWinningPlayers(winningPlayers) + "\n" : "",
                 formatter.formatHand(player.getHand(), game)
-        );
-    }
-
-    private Message sendMessage(Player player, String message) {
-        long chatId = chatMap.get(player).getId();
-
-        try {
-            return bot.execute(new SendMessage(chatId, message).setParseMode(ParseMode.HTML));
-        } catch (TelegramApiException e) {
-            e.printStackTrace();
-            // TODO
-            return null;
-        }
-    }
-
-    private void editMessage(Message message, String text) {
-        try {
-            bot.execute(
-                    new EditMessageText()
-                            .setChatId(message.getChatId())
-                            .setMessageId(message.getMessageId())
-                            .setText(text)
-                            .setParseMode(ParseMode.HTML)
-            );
-        } catch (TelegramApiException e) {
-            e.printStackTrace();
-            // TODO
-        }
-    }
-
-    private void deleteMessage(Message message) {
-        try {
-            bot.execute(new DeleteMessage(message.getChatId(), message.getMessageId()));
-        } catch (TelegramApiException e) {
-            e.printStackTrace();
-            // TODO
-        }
-    }
-
-    private void deleteMessageAfterDelay(Message message, int delay) {
-        timer.schedule(
-                new TimerTask() {
-                    @Override
-                    public void run() {
-                        deleteMessage(message);
-                    }
-                },
-                delay
         );
     }
 }

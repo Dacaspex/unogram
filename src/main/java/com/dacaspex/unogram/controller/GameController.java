@@ -38,6 +38,7 @@ public class GameController {
 
     public boolean join(Player player) {
         // TODO: Don't return boolean
+        // TODO: Remove already joined party from announcer
         if (!party.getPlayers().contains(player)) {
             party.getPlayers().add(player);
             announcer.playerJoinedParty(player, party);

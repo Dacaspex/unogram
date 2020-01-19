@@ -3,11 +3,11 @@ package com.dacaspex.unogram.controller.announcements;
 import com.dacaspex.unogram.game.*;
 
 public class ConsoleAnnouncer implements Announcer {
-    private final String id;
+    private final String gameId;
     private final ConsoleFormatter formatter;
 
-    public ConsoleAnnouncer(String id) {
-        this.id = id;
+    public ConsoleAnnouncer(String gameId) {
+        this.gameId = gameId;
         this.formatter = new ConsoleFormatter();
     }
 
@@ -99,6 +99,6 @@ public class ConsoleAnnouncer implements Announcer {
     }
 
     private void print(String message) {
-        System.out.println(String.format("[%s] %s", id, message));
+        System.out.println(String.format("[%s] %s", gameId, message));
     }
 }
