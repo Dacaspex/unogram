@@ -1,5 +1,6 @@
 package com.dacaspex.unogram.telegram;
 
+import com.dacaspex.unogram.common.Emoji;
 import com.dacaspex.unogram.controller.announcements.Announcer;
 import com.dacaspex.unogram.game.*;
 import org.telegram.telegrambots.meta.api.objects.Message;
@@ -60,12 +61,9 @@ public class TelegramAnnouncer implements Announcer {
 
     @Override
     public void playerLeftParty(Player player, Party party) {
-        // Update the message of the player that left
-        Message playerJoinMessage = joinMessages.get(player);
-        sender.editMessage(playerJoinMessage, "You successfully left the game.");
-
-        // Remove the leave message after some time
-        sender.deleteMessageAfterDelay(playerJoinMessage);
+        // Delete the join message and notify about that the player has left
+        sender.deleteMessage(joinMessages.get(player));
+        sender.sendAndDeleteAfterDelay(player, "You successfully left the party");
 
         // Update other players' messages to update the player list
         joinMessages.values().forEach(m -> sender.editMessage(m, getJoinedMessage(party.getPlayers())));
@@ -105,15 +103,13 @@ public class TelegramAnnouncer implements Announcer {
     @Override
     public void playedInvalidCard(Player player, Card card, UnoGame game) {
         // TODO: Explain why
-        Message message = sender.sendMessage(player, "That card cannot be played.");
-        sender.deleteMessageAfterDelay(message);
+        sender.sendAndDeleteAfterDelay(player, "That card cannot be played.");
     }
 
     @Override
     public void playedBeforeTurn(Player player, UnoGame game) {
         // TODO: Explain who's turn it is
-        Message message = sender.sendMessage(player, "It is not your turn.");
-        sender.deleteMessageAfterDelay(message);
+        sender.sendAndDeleteAfterDelay(player, "It is not your turn.");
     }
 
     @Override
@@ -127,11 +123,10 @@ public class TelegramAnnouncer implements Announcer {
         );
 
         // Notify the next player that has to play a card
-        Message message = sender.sendMessage(
+        sender.sendAndDeleteAfterDelay(
                 game.getParty().getCurrent(),
                 "It is your turn to play a card."
         );
-        sender.deleteMessageAfterDelay(message);
     }
 
     @Override
@@ -145,11 +140,10 @@ public class TelegramAnnouncer implements Announcer {
         );
 
         // Notify the next player that has to play a card
-        Message message = sender.sendMessage(
+        sender.sendAndDeleteAfterDelay(
                 game.getParty().getCurrent(),
                 "It is your turn to play a card."
         );
-        sender.deleteMessageAfterDelay(message);
     }
 
     @Override
@@ -163,25 +157,17 @@ public class TelegramAnnouncer implements Announcer {
         );
 
         // Notify the next player that has to play a card
-        Message message = sender.sendMessage(
+        sender.sendAndDeleteAfterDelay(
                 game.getParty().getCurrent(),
                 "It is your turn to play a card."
         );
-        sender.deleteMessageAfterDelay(message);
     }
 
     @Override
     public void gameFinished(UnoGame game) {
-        // TODO: Remove game state messages and replace with finish message?
-
         game.getParty().getPlayers().forEach(player -> {
-            sender.sendMessage(
-                    player,
-                    String.format(
-                            "The game has finished and the winner is @%s",
-                            game.getWinner().getUsername()
-                    )
-            );
+            sender.deleteMessage(gameStateMessages.get(player));
+            sender.sendAndDeleteAfterDelay(player, getFinishedMessage(game), 30);
         });
     }
 
@@ -216,6 +202,7 @@ public class TelegramAnnouncer implements Announcer {
                         "Discard pile: %s\n" +
                         "Last action: %s\n" +
                         "%s" +
+                        "%s" +
                         "\n" +
                         "Your cards:\n%s",
                 formatter.formatPlayerOrder(
@@ -224,8 +211,20 @@ public class TelegramAnnouncer implements Announcer {
                 ),
                 formatter.formatDiscardPile(game),
                 lastAction,
+                game.hasNoCards() ? String.format("%s no cards left in the decks.\n", Emoji.EXCLAMATION_MARK) : "",
                 winningPlayers.size() > 0 ? formatter.formatWinningPlayers(winningPlayers) + "\n" : "",
                 formatter.formatHand(player.getHand(), game)
+        );
+    }
+
+    private String getFinishedMessage(UnoGame game) {
+        // TODO: Reformat this with emojis
+        return String.format(
+                "" +
+                        "The winner is: %s!\n" +
+                        "\n" +
+                        "(this message will be deleted after 30 seconds)",
+                game.getWinner().getUsername()
         );
     }
 }

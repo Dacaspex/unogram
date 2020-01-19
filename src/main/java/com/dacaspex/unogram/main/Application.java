@@ -1,7 +1,7 @@
 package com.dacaspex.unogram.main;
 
-import com.dacaspex.unogram.telegram.GameControllerStorage;
-import com.dacaspex.unogram.telegram.PlayerStorage;
+import com.dacaspex.unogram.common.GameControllerStorage;
+import com.dacaspex.unogram.common.PlayerStorage;
 import com.dacaspex.unogram.telegram.TelegramBotHandler;
 import org.telegram.telegrambots.ApiContextInitializer;
 import org.telegram.telegrambots.meta.TelegramBotsApi;

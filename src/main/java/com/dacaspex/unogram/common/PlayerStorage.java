@@ -1,9 +1,8 @@
-package com.dacaspex.unogram.telegram;
+package com.dacaspex.unogram.common;
 
 import com.dacaspex.unogram.game.Player;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class PlayerStorage {

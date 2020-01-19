@@ -47,6 +47,14 @@ public class TelegramSender {
         }
     }
 
+    public void sendAndDeleteAfterDelay(Player player, String message) {
+        deleteMessageAfterDelay(sendMessage(player, message));
+    }
+
+    public void sendAndDeleteAfterDelay(Player player, String message, int delay) {
+        deleteMessageAfterDelay(sendMessage(player, message), delay);
+    }
+
     public void sendAndDeleteAfterDelay(Chat chat, String message) {
         deleteMessageAfterDelay(sendMessage(chat, message));
     }

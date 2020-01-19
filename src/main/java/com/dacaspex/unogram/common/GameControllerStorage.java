@@ -1,4 +1,4 @@
-package com.dacaspex.unogram.telegram;
+package com.dacaspex.unogram.common;
 
 import com.dacaspex.unogram.controller.GameController;
 import com.dacaspex.unogram.game.Player;

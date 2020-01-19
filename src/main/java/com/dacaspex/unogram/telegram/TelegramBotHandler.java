@@ -1,5 +1,7 @@
 package com.dacaspex.unogram.telegram;
 
+import com.dacaspex.unogram.common.GameControllerStorage;
+import com.dacaspex.unogram.common.PlayerStorage;
 import com.dacaspex.unogram.game.Player;
 import com.dacaspex.unogram.telegram.command.*;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
@@ -21,6 +23,7 @@ public class TelegramBotHandler extends TelegramLongPollingBot {
 
     private final TelegramSender sender;
 
+    private final HelpCommand helpCommand;
     private final CreateCommand createCommand;
     private final JoinCommand joinCommand;
     private final StartCommand startCommand;
@@ -39,6 +42,7 @@ public class TelegramBotHandler extends TelegramLongPollingBot {
         TelegramPlayerFactory playerFactory = new TelegramPlayerFactory();
         Map<Player, Chat> playerChatMap = new HashMap<>();
         this.sender = new TelegramSender(this, playerChatMap);
+        this.helpCommand = new HelpCommand(sender);
         this.createCommand = new CreateCommand(
                 sender,
                 playerStorage,
@@ -100,7 +104,9 @@ public class TelegramBotHandler extends TelegramLongPollingBot {
 
         // Get the user command
         String command = update.getMessage().getText().toLowerCase();
-        if (command.startsWith("create")) {
+        if (command.startsWith("help")) {
+            helpCommand.execute(update);
+        } else if (command.startsWith("create")) {
             createCommand.execute(update);
         } else if (command.startsWith("join")) {
             joinCommand.execute(update);

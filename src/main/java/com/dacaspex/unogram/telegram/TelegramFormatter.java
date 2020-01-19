@@ -1,5 +1,6 @@
 package com.dacaspex.unogram.telegram;
 
+import com.dacaspex.unogram.common.Emoji;
 import com.dacaspex.unogram.game.*;
 
 import java.util.List;

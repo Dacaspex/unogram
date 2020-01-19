@@ -1,6 +1,5 @@
 package com.dacaspex.unogram.game;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class UnoGame {
@@ -11,12 +10,15 @@ public class UnoGame {
     private Suit chosenSuit;
     private Player winner;
 
+    private boolean noCards;
+
     public UnoGame(Party party, Deck pile, Deck discardPile) {
         this.party = party;
         this.pile = pile;
         this.discardPile = discardPile;
         this.chosenSuit = null;
         this.winner = null;
+        this.noCards = false;
     }
 
     public Party getParty() {
@@ -33,6 +35,10 @@ public class UnoGame {
 
     public Player getWinner() {
         return winner;
+    }
+
+    public boolean hasNoCards() {
+        return noCards;
     }
 
     public void start() {
@@ -87,7 +93,6 @@ public class UnoGame {
         } else if (card.getType() == Type.DRAW_2) {
             Player nextPlayer = party.getNext();
 
-            // TODO: Pile could be empty
             // Draw two cards
             draw(nextPlayer, 2);
         }
@@ -117,14 +122,22 @@ public class UnoGame {
     }
 
     public Card draw(Player player) {
-        // TODO: What if all cards are in the hands of all players?
         if (pile.getCards().size() == 0) {
+            if (discardPile.getCards().size() == 1) {
+                // All cards are in the hands of all players. Cannot draw a new card
+                noCards = true;
+
+                return null;
+            }
+
             // Save the top card and restock the pile
             Card topCard = discardPile.getCards().pop();
             discardPile.getCards().forEach(pile.getCards()::add);
             pile.shuffle();
             discardPile.getCards().push(topCard);
         }
+
+        noCards = false;
 
         // Take a card from the pile and add it to the player's hand
         Card card = pile.getCards().pop();
@@ -133,14 +146,10 @@ public class UnoGame {
         return card;
     }
 
-    public List<Card> draw(Player player, int n) {
-        List<Card> cards = new ArrayList<>();
-
+    private void draw(Player player, int n) {
         for (int i = 0; i < n; i++) {
-            cards.add(draw(player));
+            draw(player);
         }
-
-        return cards;
     }
 
     public boolean isFinished() {

@@ -2,8 +2,9 @@ package com.dacaspex.unogram.telegram.command;
 
 import com.dacaspex.unogram.controller.GameController;
 import com.dacaspex.unogram.game.Player;
-import com.dacaspex.unogram.telegram.GameControllerStorage;
-import com.dacaspex.unogram.telegram.PlayerStorage;
+import com.dacaspex.unogram.common.GameControllerStorage;
+import com.dacaspex.unogram.common.PlayerStorage;
+import com.dacaspex.unogram.telegram.TelegramPlayerFactory;
 import com.dacaspex.unogram.telegram.TelegramSender;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.Update;

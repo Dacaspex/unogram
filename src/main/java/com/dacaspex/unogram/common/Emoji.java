@@ -1,4 +1,4 @@
-package com.dacaspex.unogram.telegram;
+package com.dacaspex.unogram.common;
 
 public enum Emoji {
     RED_HEART("❤"),
