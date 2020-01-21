@@ -7,7 +7,14 @@ public enum Emoji {
     GREEN_HEART("\uD83D\uDC9A"),
     BLACK_HEART("\uD83D\uDDA4"),
 
-    EXCLAMATION_MARK("❗");
+    JOYSTICK("\uD83D\uDD79️"),
+
+    EXCLAMATION_MARK("❗"),
+    INFORMATION("ℹ️"),
+    PLAY_BUTTON("▶️"),
+
+    TROPHY("\uD83C\uDFC6"),
+    SPORTS_MEDAL("\uD83C\uDFC5");
 
     private final String unicode;
 

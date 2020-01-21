@@ -1,17 +1,18 @@
 package com.dacaspex.unogram.controller.announcements;
 
-import com.dacaspex.unogram.game.*;
+import com.dacaspex.unogram.game.Card;
+import com.dacaspex.unogram.game.Player;
+import com.dacaspex.unogram.game.Suit;
+import com.dacaspex.unogram.game.UnoGame;
 
 public interface Announcer {
     void gameCreated(String id, Player host);
 
-    void playerJoinedParty(Player player, Party party);
+    void playerJoinedParty(Player player, UnoGame game);
 
-    void playerLeftParty(Player player, Party party);
+    void playerLeftParty(Player player, UnoGame game);
 
-    void playerAlreadyInParty(Player player, Party party);
-
-    void playerNotInParty(Player player, Party party);
+    void gameAbandoned(UnoGame game);
 
     void gameStarted(UnoGame game);
 

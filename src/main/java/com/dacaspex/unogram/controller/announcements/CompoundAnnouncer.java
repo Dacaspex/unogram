@@ -1,6 +1,9 @@
 package com.dacaspex.unogram.controller.announcements;
 
-import com.dacaspex.unogram.game.*;
+import com.dacaspex.unogram.game.Card;
+import com.dacaspex.unogram.game.Player;
+import com.dacaspex.unogram.game.Suit;
+import com.dacaspex.unogram.game.UnoGame;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,23 +22,18 @@ public class CompoundAnnouncer implements Announcer {
     }
 
     @Override
-    public void playerJoinedParty(Player player, Party party) {
-        announcers.forEach(a -> a.playerJoinedParty(player, party));
+    public void playerJoinedParty(Player player, UnoGame game) {
+        announcers.forEach(a -> a.playerJoinedParty(player, game));
     }
 
     @Override
-    public void playerLeftParty(Player player, Party party) {
-        announcers.forEach(a -> a.playerLeftParty(player, party));
+    public void playerLeftParty(Player player, UnoGame game) {
+        announcers.forEach(a -> a.playerLeftParty(player, game));
     }
 
     @Override
-    public void playerAlreadyInParty(Player player, Party party) {
-        announcers.forEach(a -> a.playerAlreadyInParty(player, party));
-    }
-
-    @Override
-    public void playerNotInParty(Player player, Party party) {
-        announcers.forEach(a -> a.playerNotInParty(player, party));
+    public void gameAbandoned(UnoGame game) {
+        announcers.forEach(a -> a.gameAbandoned(game));
     }
 
     @Override

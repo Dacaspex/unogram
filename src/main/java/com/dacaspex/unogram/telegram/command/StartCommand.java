@@ -58,8 +58,7 @@ public class StartCommand {
             return;
         }
 
-        // Minimum amount of players
-        // TODO: Minimum amount of players
+        // TODO: Handle start requirements
 
         controller.start();
     }

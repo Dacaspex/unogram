@@ -1,9 +1,9 @@
 package com.dacaspex.unogram.telegram.command;
 
-import com.dacaspex.unogram.controller.GameController;
-import com.dacaspex.unogram.game.Player;
 import com.dacaspex.unogram.common.GameControllerStorage;
 import com.dacaspex.unogram.common.PlayerStorage;
+import com.dacaspex.unogram.controller.GameController;
+import com.dacaspex.unogram.game.Player;
 import com.dacaspex.unogram.telegram.TelegramPlayerFactory;
 import com.dacaspex.unogram.telegram.TelegramSender;
 import org.telegram.telegrambots.meta.api.objects.Chat;
@@ -83,7 +83,15 @@ public class JoinCommand {
             return;
         }
 
-        // TODO: Check if game is open to join
+        // Check game requirements
+        // Check if there is enough room in the game
+        int partySize = controller.getParty().getPlayers().size();
+        int maxSize = controller.getOptions().getMaxNumberOfPlayers();
+        if (partySize == maxSize) {
+            sender.sendAndDeleteAfterDelay(update.getMessage().getChat(), "That game is already full.");
+
+            return;
+        }
 
         // Save the player and let him/her join the game
         playerStorage.add(player);

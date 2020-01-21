@@ -4,6 +4,8 @@ import java.util.List;
 
 public class UnoGame {
 
+    // TODO: What if no one can play a card?
+
     private final Party party;
     private final Deck pile;
     private final Deck discardPile;

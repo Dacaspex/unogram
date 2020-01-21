@@ -1,6 +1,9 @@
 package com.dacaspex.unogram.controller.announcements;
 
-import com.dacaspex.unogram.game.*;
+import com.dacaspex.unogram.game.Card;
+import com.dacaspex.unogram.game.Player;
+import com.dacaspex.unogram.game.Suit;
+import com.dacaspex.unogram.game.UnoGame;
 
 public class ConsoleAnnouncer implements Announcer {
     private final String gameId;
@@ -17,23 +20,18 @@ public class ConsoleAnnouncer implements Announcer {
     }
 
     @Override
-    public void playerJoinedParty(Player player, Party party) {
+    public void playerJoinedParty(Player player, UnoGame game) {
         print(String.format("Player %s joined the party", player.getUsername()));
     }
 
     @Override
-    public void playerLeftParty(Player player, Party party) {
+    public void playerLeftParty(Player player, UnoGame game) {
         print(String.format("Player %s left the party", player.getUsername()));
     }
 
     @Override
-    public void playerAlreadyInParty(Player player, Party party) {
-        print(String.format("Player %s already in the party", player.getUsername()));
-    }
-
-    @Override
-    public void playerNotInParty(Player player, Party party) {
-        print(String.format("Player %s is not in the party", player.getUsername()));
+    public void gameAbandoned(UnoGame game) {
+        print("Game is abandoned");
     }
 
     @Override

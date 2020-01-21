@@ -26,6 +26,7 @@ public class TelegramBotHandler extends TelegramLongPollingBot {
     private final HelpCommand helpCommand;
     private final CreateCommand createCommand;
     private final JoinCommand joinCommand;
+    private final LeaveCommand leaveCommand;
     private final StartCommand startCommand;
     private final PlayCommand playCommand;
     private final DrawCommand drawCommand;
@@ -52,6 +53,13 @@ public class TelegramBotHandler extends TelegramLongPollingBot {
                 botUsername
         );
         this.joinCommand = new JoinCommand(
+                sender,
+                playerStorage,
+                controllerStorage,
+                playerFactory,
+                playerChatMap
+        );
+        this.leaveCommand = new LeaveCommand(
                 sender,
                 playerStorage,
                 controllerStorage,
@@ -104,20 +112,26 @@ public class TelegramBotHandler extends TelegramLongPollingBot {
 
         // Get the user command
         String command = update.getMessage().getText().toLowerCase();
-        if (command.startsWith("help")) {
+
+        if (command.startsWith("/start") || command.startsWith("/help")) {
             helpCommand.execute(update);
-        } else if (command.startsWith("create")) {
+        } else if (command.startsWith("/create")) {
             createCommand.execute(update);
-        } else if (command.startsWith("join")) {
+        } else if (command.startsWith("/join")) {
             joinCommand.execute(update);
-        } else if (command.startsWith("start")) {
+        } else if (command.startsWith("/leave")) {
+            leaveCommand.execute(update);
+        } else if (command.startsWith("/begin")) {
             startCommand.execute(update);
-        } else if (command.startsWith("play")) {
+        } else if (command.startsWith("play") || command.startsWith("p")) {
             playCommand.execute(update);
-        } else if (command.startsWith("draw")) {
+        } else if (command.startsWith("draw") || command.startsWith("d")) {
             drawCommand.execute(update);
         } else {
-            // TODO: Unknown command
+            sender.sendAndDeleteAfterDelay(
+                    update.getMessage().getChat(),
+                    "Unknown command. You can find /help to see the help."
+            );
         }
     }
 

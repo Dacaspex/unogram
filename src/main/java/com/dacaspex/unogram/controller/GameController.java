@@ -1,6 +1,9 @@
 package com.dacaspex.unogram.controller;
 
 import com.dacaspex.unogram.controller.announcements.Announcer;
+import com.dacaspex.unogram.controller.exceptions.DuplicatePlayerException;
+import com.dacaspex.unogram.controller.exceptions.PlayerNotInPartyException;
+import com.dacaspex.unogram.controller.exceptions.TooManyPlayersException;
 import com.dacaspex.unogram.game.*;
 
 public class GameController {
@@ -10,12 +13,14 @@ public class GameController {
     private final Party party;
     private final Options options;
     private UnoGame game;
+    private boolean abandoned;
 
     public GameController(String id, Announcer announcer) {
         this.id = id;
         this.announcer = announcer;
         this.options = Options.createStandard();
         this.party = new Party();
+        this.abandoned = false;
     }
 
     public String getId() {
@@ -30,37 +35,57 @@ public class GameController {
         return options;
     }
 
+    public boolean isAbandoned() {
+        return abandoned;
+    }
+
     public void create(Player host) {
         party.getPlayers().add(host);
         party.setHost(host);
         announcer.gameCreated(id, host);
     }
 
-    public boolean join(Player player) {
-        // TODO: Don't return boolean
-        // TODO: Remove already joined party from announcer
-        if (!party.getPlayers().contains(player)) {
-            party.getPlayers().add(player);
-            announcer.playerJoinedParty(player, party);
-
-            return true;
-        } else {
-            announcer.playerAlreadyInParty(player, party);
-
-            return false;
+    public void join(Player player) {
+        // Verify preconditions
+        // Cannot add a player that is already in the party
+        if (party.getPlayers().contains(player)) {
+            throw new DuplicatePlayerException();
         }
+
+        // Cannot add a player if the party is already full
+        if (party.getPlayers().size() > options.getMaxNumberOfPlayers()) {
+            throw new TooManyPlayersException();
+        }
+
+        party.getPlayers().add(player);
+        announcer.playerJoinedParty(player, game);
     }
 
     public void leave(Player player) {
-        if (party.getPlayers().contains(player)) {
-            party.getPlayers().remove(player);
-            announcer.playerLeftParty(player, party);
-        } else {
-            announcer.playerNotInParty(player, party);
+        // Verify preconditions
+        // The player must already be in the party in order to be removed
+        if (!party.getPlayers().contains(player)) {
+            throw new PlayerNotInPartyException();
         }
+
+        // If the host leaves, set the game to be abandoned
+        if (player == party.getHost()) {
+            abandoned = true;
+            announcer.gameAbandoned(game);
+
+            return;
+        }
+
+        party.getPlayers().remove(player);
+        announcer.playerLeftParty(player, game);
     }
 
     public void start() {
+        // Check game requirements
+        if (party.getPlayers().size() > options.getMaxNumberOfPlayers()) {
+            throw new TooManyPlayersException();
+        }
+
         // Create the closed and discard piles
         Deck pile = Deck.createStandard();
         Deck discardPile = new Deck();

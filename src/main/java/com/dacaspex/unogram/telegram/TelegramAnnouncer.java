@@ -2,7 +2,10 @@ package com.dacaspex.unogram.telegram;
 
 import com.dacaspex.unogram.common.Emoji;
 import com.dacaspex.unogram.controller.announcements.Announcer;
-import com.dacaspex.unogram.game.*;
+import com.dacaspex.unogram.game.Card;
+import com.dacaspex.unogram.game.Player;
+import com.dacaspex.unogram.game.Suit;
+import com.dacaspex.unogram.game.UnoGame;
 import org.telegram.telegrambots.meta.api.objects.Message;
 
 import java.util.Collections;
@@ -47,38 +50,35 @@ public class TelegramAnnouncer implements Announcer {
     }
 
     @Override
-    public void playerJoinedParty(Player player, Party party) {
+    public void playerJoinedParty(Player player, UnoGame game) {
         // Update host message with the new player that joined
-        sender.editMessage(gameCreatedMessage, getGameCreatedMessage(gameId, party.getPlayers()));
+        sender.editMessage(gameCreatedMessage, getGameCreatedMessage(gameId, game.getParty().getPlayers()));
 
         // Update the join message to update the list of players in the game. We do this first
         // to avoid updating the new message we are about to create
-        joinMessages.values().forEach(m -> sender.editMessage(m, getJoinedMessage(party.getPlayers())));
+        joinMessages.values().forEach(m -> sender.editMessage(m, getJoinedMessage(game.getParty().getPlayers())));
 
         // Send message to player that he joined
-        joinMessages.put(player, sender.sendMessage(player, getJoinedMessage(party.getPlayers())));
+        joinMessages.put(player, sender.sendMessage(player, getJoinedMessage(game.getParty().getPlayers())));
     }
 
     @Override
-    public void playerLeftParty(Player player, Party party) {
+    public void playerLeftParty(Player player, UnoGame game) {
         // Delete the join message and notify about that the player has left
         sender.deleteMessage(joinMessages.get(player));
         sender.sendAndDeleteAfterDelay(player, "You successfully left the party");
 
         // Update other players' messages to update the player list
-        joinMessages.values().forEach(m -> sender.editMessage(m, getJoinedMessage(party.getPlayers())));
+        joinMessages.values().forEach(m -> sender.editMessage(m, getJoinedMessage(game.getParty().getPlayers())));
     }
 
     @Override
-    public void playerAlreadyInParty(Player player, Party party) {
-        // Intentionally left blank
-    }
-
-    @Override
-    public void playerNotInParty(Player player, Party party) {
-        // TODO: Rename method?
-        // TODO: Refactor
-        sender.sendMessage(player, "You are not yet in the party.");
+    public void gameAbandoned(UnoGame game) {
+        // TODO: Implement
+        // TODO: Remove all joined messages
+        // TODO: Create abandoned messages
+        // TODO: Remove host messages
+        // TODO: Remove game state messages (if in game)
     }
 
     @Override
@@ -167,7 +167,7 @@ public class TelegramAnnouncer implements Announcer {
     public void gameFinished(UnoGame game) {
         game.getParty().getPlayers().forEach(player -> {
             sender.deleteMessage(gameStateMessages.get(player));
-            sender.sendAndDeleteAfterDelay(player, getFinishedMessage(game), 30);
+            sender.sendAndDeleteAfterDelay(player, getFinishedMessage(game), 30 * 1000);
         });
     }
 
@@ -218,13 +218,15 @@ public class TelegramAnnouncer implements Announcer {
     }
 
     private String getFinishedMessage(UnoGame game) {
-        // TODO: Reformat this with emojis
+        String trophyString = String.format("%s%s%s", Emoji.TROPHY, Emoji.SPORTS_MEDAL, Emoji.TROPHY);
+
         return String.format(
-                "" +
-                        "The winner is: %s!\n" +
+                "%s WINNER %s %s" +
                         "\n" +
                         "(this message will be deleted after 30 seconds)",
-                game.getWinner().getUsername()
+                trophyString,
+                game.getWinner().getUsername(),
+                trophyString
         );
     }
 }

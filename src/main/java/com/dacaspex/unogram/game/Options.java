@@ -8,7 +8,7 @@ public class Options {
     }
 
     public static Options createStandard() {
-        return new Options(8);
+        return new Options(6);
     }
 
     public int getMaxNumberOfPlayers() {
