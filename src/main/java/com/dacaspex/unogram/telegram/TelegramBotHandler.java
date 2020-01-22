@@ -1,7 +1,9 @@
 package com.dacaspex.unogram.telegram;
 
+import com.dacaspex.unogram.ai.AgentFactory;
 import com.dacaspex.unogram.common.GameControllerStorage;
 import com.dacaspex.unogram.common.PlayerStorage;
+import com.dacaspex.unogram.controller.GameControllerFactory;
 import com.dacaspex.unogram.game.Player;
 import com.dacaspex.unogram.telegram.command.*;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
@@ -27,6 +29,8 @@ public class TelegramBotHandler extends TelegramLongPollingBot {
     private final CreateCommand createCommand;
     private final JoinCommand joinCommand;
     private final LeaveCommand leaveCommand;
+    private final AddAgentCommand addAgentCommand;
+    private final RemoveAgentCommand removeAgentCommand;
     private final StartCommand startCommand;
     private final PlayCommand playCommand;
     private final DrawCommand drawCommand;
@@ -35,13 +39,16 @@ public class TelegramBotHandler extends TelegramLongPollingBot {
             String token,
             String botUsername,
             PlayerStorage playerStorage,
-            GameControllerStorage controllerStorage
+            GameControllerStorage controllerStorage,
+            GameControllerFactory controllerFactory,
+            AgentFactory agentFactory
     ) {
         this.token = token;
         this.botUsername = botUsername;
 
         TelegramPlayerFactory playerFactory = new TelegramPlayerFactory();
         Map<Player, Chat> playerChatMap = new HashMap<>();
+
         this.sender = new TelegramSender(this, playerChatMap);
         this.helpCommand = new HelpCommand(sender);
         this.createCommand = new CreateCommand(
@@ -49,6 +56,7 @@ public class TelegramBotHandler extends TelegramLongPollingBot {
                 playerStorage,
                 controllerStorage,
                 playerFactory,
+                controllerFactory,
                 playerChatMap,
                 botUsername
         );
@@ -65,6 +73,19 @@ public class TelegramBotHandler extends TelegramLongPollingBot {
                 controllerStorage,
                 playerFactory,
                 playerChatMap
+        );
+        this.addAgentCommand = new AddAgentCommand(
+                sender,
+                playerStorage,
+                controllerStorage,
+                playerFactory,
+                agentFactory
+        );
+        this.removeAgentCommand = new RemoveAgentCommand(
+                sender,
+                playerStorage,
+                controllerStorage,
+                playerFactory
         );
         this.startCommand = new StartCommand(
                 sender,
@@ -121,6 +142,10 @@ public class TelegramBotHandler extends TelegramLongPollingBot {
             joinCommand.execute(update);
         } else if (command.startsWith("/leave")) {
             leaveCommand.execute(update);
+        } else if (command.startsWith("/addagent")) {
+            addAgentCommand.execute(update);
+        } else if (command.startsWith("/removeagent")) {
+            removeAgentCommand.execute(update);
         } else if (command.startsWith("/begin")) {
             startCommand.execute(update);
         } else if (command.startsWith("play") || command.startsWith("p")) {

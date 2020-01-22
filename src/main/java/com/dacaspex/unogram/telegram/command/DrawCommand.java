@@ -32,7 +32,7 @@ public class DrawCommand {
         if (player == null) {
             sender.sendAndDeleteAfterDelay(
                     update.getMessage().getChat(),
-                    "You are not in a game. Please join a game by typing \"join &lt;game id&gt;\""
+                    "You are not in a game. Please join a game by typing <code>/join &lt;game id&gt;</code>"
             );
             return;
         }

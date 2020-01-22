@@ -32,15 +32,19 @@ public class TelegramFormatter {
                 .collect(Collectors.joining(" <code>--></code> "));
     }
 
-    public String formatPlayerList(List<Player> players) {
+    public String formatPlayerList(List<Player> players, Player host) {
         return players.stream()
-                .map(p -> String.format("- %s", p.getUsername()))
+                .map(p -> String.format(
+                        "- %s %s",
+                        p.getUsername(),
+                        p == host ? "(host)" : ""
+                ))
                 .collect(Collectors.joining("\n"));
     }
 
     public String formatWinningPlayers(List<Player> winningPlayers) {
         return winningPlayers.stream()
-                .map(p -> String.format("%s %s", Emoji.EXCLAMATION_MARK, p.getUsername()))
+                .map(p -> String.format("%s %s has one card left.", Emoji.EXCLAMATION_MARK, p.getUsername()))
                 .collect(Collectors.joining("\n"));
     }
 
@@ -49,7 +53,7 @@ public class TelegramFormatter {
 
         return game.getChosenSuit() == null
                 ? formatCard(topCard)
-                : String.format("%s (Suit changed to %s", topCard, formatSuit(game.getChosenSuit()));
+                : String.format("%s (Suit changed to %s", formatCard(topCard), formatSuit(game.getChosenSuit()));
     }
 
     public String formatCard(Card card) {

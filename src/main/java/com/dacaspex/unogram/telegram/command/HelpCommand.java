@@ -27,6 +27,9 @@ public class HelpCommand {
                                 "the host of this game.\n" +
                                 "- <code>/begin</code> as a host, use this to start the game.\n" +
                                 "- <code>/join &lt;game id&gt</code>; use this as a player to join a game.\n" +
+                                "- <code>/addagent</code> as a host, use this to add AI players to the game.\n" +
+                                "- <code>/removeagent</code> as a host, use this to remove AI players from" +
+                                "the game.\n" +
                                 "\n" +
                                 "%s Actions in-game\n" +
                                 "- <code>play &lt;number&gt;</code> to play a card where the number equals the " +

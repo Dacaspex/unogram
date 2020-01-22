@@ -1,7 +1,10 @@
 package com.dacaspex.unogram.controller;
 
+import com.dacaspex.unogram.ai.Agent;
+import com.dacaspex.unogram.ai.Move;
 import com.dacaspex.unogram.controller.announcements.Announcer;
 import com.dacaspex.unogram.controller.exceptions.DuplicatePlayerException;
+import com.dacaspex.unogram.controller.exceptions.InvalidCardException;
 import com.dacaspex.unogram.controller.exceptions.PlayerNotInPartyException;
 import com.dacaspex.unogram.controller.exceptions.TooManyPlayersException;
 import com.dacaspex.unogram.game.*;
@@ -20,6 +23,7 @@ public class GameController {
         this.announcer = announcer;
         this.options = Options.createStandard();
         this.party = new Party();
+        this.game = new UnoGame(party);
         this.abandoned = false;
     }
 
@@ -33,6 +37,10 @@ public class GameController {
 
     public Options getOptions() {
         return options;
+    }
+
+    public boolean isStarted() {
+        return game.isStarted();
     }
 
     public boolean isAbandoned() {
@@ -90,9 +98,8 @@ public class GameController {
         Deck pile = Deck.createStandard();
         Deck discardPile = new Deck();
 
-        // Create the game
-        game = new UnoGame(party, pile, discardPile);
-        game.start();
+        // Start the game
+        game.start(pile, discardPile);
 
         // Announce event
         announcer.gameStarted(game);
@@ -103,7 +110,7 @@ public class GameController {
     }
 
     public void play(Player player, Card card, Suit chosenSuit) {
-        if (!isPlayersTurn(player)) {
+        if (isNotPlayersTurn(player)) {
             return;
         }
 
@@ -136,31 +143,68 @@ public class GameController {
 
         if (game.isFinished()) {
             announcer.gameFinished(game);
+            return;
         }
+
+        handleAgents();
     }
 
     public void draw(Player player) {
-        if (!isPlayersTurn(player)) {
+        if (isNotPlayersTurn(player)) {
             return;
         }
 
         Card drawnCard = game.draw(player);
         party.next();
         announcer.drewCard(player, drawnCard, game);
+
+        handleAgents();
     }
 
     public boolean isFinished() {
         return game.isFinished();
     }
 
-    private boolean isPlayersTurn(Player player) {
+    private void handleAgents() {
+        while (party.getCurrent() instanceof Agent) {
+            Agent agent = (Agent) party.getCurrent();
+            Move move = agent.getMove(game);
+
+            if (move.isDrawMove()) {
+                Card card = game.draw(agent);
+                party.next();
+                announcer.drewCard(agent, card, game);
+            } else {
+                if (!game.canPlay(move.getCard())) {
+                    throw new InvalidCardException();
+                }
+
+                if (move.isCardMove()) {
+                    game.play(agent, move.getCard());
+                    party.next();
+                    announcer.playedCard(agent, move.getCard(), game);
+                } else {
+                    game.playWild(agent, move.getCard(), move.getSuit());
+                    party.next();
+                    announcer.playedWildCard(agent, move.getCard(), move.getSuit(), game);
+                }
+            }
+
+            if (game.isFinished()) {
+                announcer.gameFinished(game);
+                return;
+            }
+        }
+    }
+
+    private boolean isNotPlayersTurn(Player player) {
         // Check if it is the player's turn
         if (party.getCurrent() != player) {
             announcer.playedBeforeTurn(player, game);
 
-            return false;
+            return true;
         }
 
-        return true;
+        return false;
     }
 }

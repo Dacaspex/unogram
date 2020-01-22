@@ -53,7 +53,7 @@ public class JoinCommand {
             sender.sendAndDeleteAfterDelay(
                     update.getMessage().getChat(),
                     String.format(
-                            "You already joined a game with id %s. You can leave by typing \"leave\"",
+                            "You already joined a game with id %s. You can leave by typing <code>/leave</code>",
                             controller.getId()
                     )
             );

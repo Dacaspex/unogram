@@ -1,12 +1,12 @@
 package com.dacaspex.unogram.telegram.command;
 
+import com.dacaspex.unogram.common.GameControllerStorage;
+import com.dacaspex.unogram.common.PlayerStorage;
 import com.dacaspex.unogram.controller.GameController;
 import com.dacaspex.unogram.game.Card;
 import com.dacaspex.unogram.game.Hand;
 import com.dacaspex.unogram.game.Player;
 import com.dacaspex.unogram.game.Suit;
-import com.dacaspex.unogram.common.GameControllerStorage;
-import com.dacaspex.unogram.common.PlayerStorage;
 import com.dacaspex.unogram.telegram.TelegramPlayerFactory;
 import com.dacaspex.unogram.telegram.TelegramSender;
 import org.telegram.telegrambots.meta.api.objects.Chat;
@@ -43,7 +43,7 @@ public class PlayCommand {
         if (player == null) {
             sender.sendAndDeleteAfterDelay(
                     update.getMessage().getChat(),
-                    "You are not in a game. Please join a game by typing \"join &lt;game id&gt;\""
+                    "You are not in a game. Please join a game by typing <code>/join &lt;game id&gt;</code>"
             );
             return;
         }
@@ -52,6 +52,15 @@ public class PlayCommand {
         GameController controller = controllerStorage.get(player);
         if (controller == null) {
             throw new IllegalStateException("Controller does not exists for player");
+        }
+
+        // Check if the game has started
+        if (!controller.isStarted()) {
+            sender.sendAndDeleteAfterDelay(
+                    update.getMessage().getChat(),
+                    "Cannot play a card because the game has not started yet."
+            );
+            return;
         }
 
         // Decode message into a playable card
@@ -84,7 +93,7 @@ public class PlayCommand {
         // If the game is finished, then remove all mappings
         if (controller.isFinished()) {
             // Remove all players
-            controller.getParty().getPlayers().forEach(p -> {
+            controller.getParty().getHumans().forEach(p -> {
                 playerStorage.remove(player);
                 playerChatMap.remove(player);
             });

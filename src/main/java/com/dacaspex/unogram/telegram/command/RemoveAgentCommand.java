@@ -1,5 +1,6 @@
 package com.dacaspex.unogram.telegram.command;
 
+import com.dacaspex.unogram.ai.Agent;
 import com.dacaspex.unogram.common.GameControllerStorage;
 import com.dacaspex.unogram.common.PlayerStorage;
 import com.dacaspex.unogram.controller.GameController;
@@ -8,14 +9,15 @@ import com.dacaspex.unogram.telegram.TelegramPlayerFactory;
 import com.dacaspex.unogram.telegram.TelegramSender;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
-public class StartCommand {
+import java.util.List;
 
+public class RemoveAgentCommand {
     private final TelegramSender sender;
     private final PlayerStorage playerStorage;
     private final GameControllerStorage controllerStorage;
     private final TelegramPlayerFactory playerFactory;
 
-    public StartCommand(
+    public RemoveAgentCommand(
             TelegramSender sender,
             PlayerStorage playerStorage,
             GameControllerStorage controllerStorage,
@@ -46,20 +48,27 @@ public class StartCommand {
             throw new IllegalArgumentException("Controller does not exist for player");
         }
 
-        // Check if the player is the host
-        if (controller.getParty().getHost() != player) {
+        // Only host can add agents
+        if (player != controller.getParty().getHost()) {
             sender.sendAndDeleteAfterDelay(
                     update.getMessage().getChat(),
-                    String.format(
-                            "You cannot start this game because you are not the host. %s is the host.",
-                            controller.getParty().getHost().getUsername()
-                    )
+                    "You cannot add an AI player. Only the host can."
             );
             return;
         }
 
-        // TODO: Handle start requirements, e.g. enough players
+        // TODO: Remove agent by difficulty
 
-        controller.start();
+        // Check if there are agents that can be removed
+        List<Agent> agents = controller.getParty().getAgents();
+        if (agents.size() == 0) {
+            sender.sendAndDeleteAfterDelay(
+                    update.getMessage().getChat(),
+                    "There are no AI players to remove from this party."
+            );
+            return;
+        }
+
+        controller.leave(agents.get(0));
     }
 }

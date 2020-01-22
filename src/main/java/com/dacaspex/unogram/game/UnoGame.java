@@ -7,19 +7,19 @@ public class UnoGame {
     // TODO: What if no one can play a card?
 
     private final Party party;
-    private final Deck pile;
-    private final Deck discardPile;
+    private Deck pile;
+    private Deck discardPile;
     private Suit chosenSuit;
     private Player winner;
 
+    private boolean started;
     private boolean noCards;
 
-    public UnoGame(Party party, Deck pile, Deck discardPile) {
+    public UnoGame(Party party) {
         this.party = party;
-        this.pile = pile;
-        this.discardPile = discardPile;
         this.chosenSuit = null;
         this.winner = null;
+        this.started = false;
         this.noCards = false;
     }
 
@@ -39,11 +39,18 @@ public class UnoGame {
         return winner;
     }
 
+    public boolean isStarted() {
+        return started;
+    }
+
     public boolean hasNoCards() {
         return noCards;
     }
 
-    public void start() {
+    public void start(Deck pile, Deck discardPile) {
+        this.pile = pile;
+        this.discardPile = discardPile;
+
         pile.shuffle();
 
         List<Hand> newHands = pile.deal(7, party.getPlayers().size());
@@ -63,6 +70,8 @@ public class UnoGame {
 
         discardPile.getCards().push(pile.getCards().pop());
         // TODO: First card action
+
+        started = true;
     }
 
     public boolean canPlay(Card card) {
@@ -78,6 +87,8 @@ public class UnoGame {
         if (!canPlay(card)) {
             throw new IllegalArgumentException("Card cannot be played");
         }
+
+        // TODO: 2-player rules
 
         // Put the card from the hand on the discard pile
         player.getHand().getCards().remove(card);

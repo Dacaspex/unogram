@@ -6,16 +6,16 @@ import com.dacaspex.unogram.game.Suit;
 import com.dacaspex.unogram.game.UnoGame;
 
 public class ConsoleAnnouncer implements Announcer {
-    private final String gameId;
     private final ConsoleFormatter formatter;
+    private String gameId;
 
-    public ConsoleAnnouncer(String gameId) {
-        this.gameId = gameId;
+    public ConsoleAnnouncer() {
         this.formatter = new ConsoleFormatter();
     }
 
     @Override
     public void gameCreated(String id, Player host) {
+        this.gameId = id;
         print(String.format("Game created with id %s and host %s", id, host.getUsername()));
     }
 

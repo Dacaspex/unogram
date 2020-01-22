@@ -55,7 +55,7 @@ public class LeaveCommand {
         controller.leave(player);
         if (controller.isAbandoned()) {
             // The host left the game, remove all players from the storage
-            controller.getParty().getPlayers().forEach(p -> {
+            controller.getParty().getHumans().forEach(p -> {
                 playerStorage.remove(player);
                 playerChatMap.remove(player);
             });

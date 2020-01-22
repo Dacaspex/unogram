@@ -1,9 +1,11 @@
 package com.dacaspex.unogram.game;
 
+import com.dacaspex.unogram.ai.Agent;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
-// TODO: Test methods
 public class Party {
     private final List<Player> players;
     private Player host;
@@ -21,6 +23,19 @@ public class Party {
 
     public List<Player> getPlayers() {
         return players;
+    }
+
+    public List<Player> getHumans() {
+        return players.stream()
+                .filter(p -> !(p instanceof Agent))
+                .collect(Collectors.toList());
+    }
+
+    public List<Agent> getAgents() {
+        return players.stream()
+                .filter(p -> p instanceof Agent)
+                .map(p -> (Agent) p)
+                .collect(Collectors.toList());
     }
 
     public Player getHost() {

@@ -1,9 +1,9 @@
 package com.dacaspex.unogram.game;
 
 public class Player {
-    private final String id;
-    private final String username;
-    private final Hand hand;
+    protected final String id;
+    protected final String username;
+    protected final Hand hand;
 
     public Player(String id, String username) {
         this.id = id;

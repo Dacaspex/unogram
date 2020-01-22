@@ -1,7 +1,10 @@
 package com.dacaspex.unogram.main;
 
+import com.dacaspex.unogram.ai.AgentFactory;
 import com.dacaspex.unogram.common.GameControllerStorage;
+import com.dacaspex.unogram.common.IdGenerator;
 import com.dacaspex.unogram.common.PlayerStorage;
+import com.dacaspex.unogram.controller.GameControllerFactory;
 import com.dacaspex.unogram.telegram.TelegramBotHandler;
 import org.telegram.telegrambots.ApiContextInitializer;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
@@ -22,8 +25,16 @@ public class Application {
 
         String apiToken = properties.getProperty("TELEGRAM_API_TOKEN");
 
+        // Build components
+        IdGenerator alphanumericGenerator = new IdGenerator();
+        IdGenerator numericGenerator = new IdGenerator(IdGenerator.digits);
+
         PlayerStorage playerStorage = new PlayerStorage();
         GameControllerStorage controllerStorage = new GameControllerStorage();
+
+        GameControllerFactory controllerFactory = new GameControllerFactory(numericGenerator, controllerStorage);
+
+        AgentFactory agentFactory = new AgentFactory(alphanumericGenerator, playerStorage);
 
         ApiContextInitializer.init();
         TelegramBotsApi api = new TelegramBotsApi();
@@ -32,7 +43,9 @@ public class Application {
                 apiToken,
                 "uno_dev_bot",
                 playerStorage,
-                controllerStorage
+                controllerStorage,
+                controllerFactory,
+                agentFactory
         );
 
         api.registerBot(telegramBotHandler);
