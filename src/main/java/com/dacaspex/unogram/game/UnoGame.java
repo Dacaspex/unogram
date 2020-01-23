@@ -63,11 +63,6 @@ public class UnoGame {
         }
 
         // Draw first card
-        // DEBUG
-        while (pile.getCards().peek().getSuit() == Suit.WILD) {
-            pile.shuffle();
-        }
-
         discardPile.getCards().push(pile.getCards().pop());
         // TODO: First card action
 
@@ -87,8 +82,6 @@ public class UnoGame {
         if (!canPlay(card)) {
             throw new IllegalArgumentException("Card cannot be played");
         }
-
-        // TODO: 2-player rules
 
         // Put the card from the hand on the discard pile
         player.getHand().getCards().remove(card);
