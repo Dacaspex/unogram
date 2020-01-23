@@ -197,6 +197,7 @@ public class TelegramAnnouncer implements Announcer {
 
     @Override
     public void gameFinished(UnoGame game) {
+        // TODO: More information about the game?
         getHumanPlayers(game).forEach(player -> {
             sender.deleteMessage(gameStateMessages.get(player));
             sender.sendMessage(player, getFinishedMessage(game));

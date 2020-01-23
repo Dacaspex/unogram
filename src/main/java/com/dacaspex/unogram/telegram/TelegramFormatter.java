@@ -138,7 +138,19 @@ public class TelegramFormatter {
                         game.getParty().getPrevious(2).getUsername()
                 );
             case REVERSE:
-                return "The order is now reversed.";
+                if (game.getParty().getPlayers().size() == 2) {
+                    // Special rule in 2-player games that a reverse cards acts as a skip card
+                    return String.format(
+                            "%s was skipped by %s",
+                            game.getParty().getPrevious(1).getUsername(),
+                            game.getParty().getPrevious(2).getUsername()
+                    );
+                } else {
+                    return String.format(
+                            "The order is now reversed by %s",
+                            game.getParty().getPrevious().getUsername()
+                    );
+                }
             case DRAW_2:
                 return String.format(
                         "%s caused %s to draw 2 cards.",

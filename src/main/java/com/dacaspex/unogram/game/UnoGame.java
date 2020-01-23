@@ -100,10 +100,16 @@ public class UnoGame {
         chosenSuit = null;
 
         if (card.getType() == Type.REVERSE) {
-            party.reverse();
+            if (party.getPlayers().size() == 2) {
+                // Special rule: In a 2-player game, the reverse card acts as a skip card
+                party.skip();
+            } else {
+                party.reverse();
+            }
         } else if (card.getType() == Type.SKIP) {
             party.skip();
         } else if (card.getType() == Type.DRAW_2) {
+            // TODO: Stacking
             Player nextPlayer = party.getNext();
 
             // Draw two cards
