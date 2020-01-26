@@ -21,7 +21,6 @@ import java.util.Map;
 public class TelegramBotHandler extends TelegramLongPollingBot {
 
     private final String token;
-    private final String botUsername;
 
     private final TelegramSender sender;
 
@@ -35,16 +34,16 @@ public class TelegramBotHandler extends TelegramLongPollingBot {
     private final PlayCommand playCommand;
     private final DrawCommand drawCommand;
 
+    private String botUsername;
+
     public TelegramBotHandler(
             String token,
-            String botUsername,
             PlayerStorage playerStorage,
             GameControllerStorage controllerStorage,
             GameControllerFactory controllerFactory,
             AgentFactory agentFactory
     ) {
         this.token = token;
-        this.botUsername = botUsername;
 
         TelegramPlayerFactory playerFactory = new TelegramPlayerFactory();
         Map<Player, Chat> playerChatMap = new HashMap<>();
@@ -106,6 +105,14 @@ public class TelegramBotHandler extends TelegramLongPollingBot {
                 controllerStorage,
                 playerFactory
         );
+    }
+
+    public void initialise() {
+        try {
+            botUsername = getMe().getUserName();
+        } catch (TelegramApiException e) {
+            e.printStackTrace(); // TODO...
+        }
     }
 
     @Override

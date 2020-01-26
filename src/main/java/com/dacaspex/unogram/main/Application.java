@@ -41,12 +41,13 @@ public class Application {
 
         TelegramBotHandler telegramBotHandler = new TelegramBotHandler(
                 apiToken,
-                "uno_dev_bot",
                 playerStorage,
                 controllerStorage,
                 controllerFactory,
                 agentFactory
         );
+
+        telegramBotHandler.initialise();
 
         api.registerBot(telegramBotHandler);
 
