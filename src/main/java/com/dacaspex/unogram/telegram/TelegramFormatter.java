@@ -8,6 +8,8 @@ import java.util.stream.Collectors;
 
 public class TelegramFormatter {
 
+    // TODO: Card can be null
+
     public String formatHand(Hand hand, UnoGame game) {
         StringBuilder builder = new StringBuilder();
 

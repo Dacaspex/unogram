@@ -24,6 +24,7 @@ public class Application {
         properties.load(new FileInputStream(new File("config.properties")));
 
         String apiToken = properties.getProperty("TELEGRAM_API_TOKEN");
+        String botUsername = properties.getProperty("TELEGRAM_USERNAME");
 
         // Build components
         IdGenerator alphanumericGenerator = new IdGenerator();
@@ -41,13 +42,12 @@ public class Application {
 
         TelegramBotHandler telegramBotHandler = new TelegramBotHandler(
                 apiToken,
+                botUsername,
                 playerStorage,
                 controllerStorage,
                 controllerFactory,
                 agentFactory
         );
-
-        telegramBotHandler.initialise();
 
         api.registerBot(telegramBotHandler);
 
