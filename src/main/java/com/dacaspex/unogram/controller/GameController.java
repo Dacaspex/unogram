@@ -9,16 +9,14 @@ import com.dacaspex.unogram.controller.exceptions.PlayerNotInPartyException;
 import com.dacaspex.unogram.controller.exceptions.TooManyPlayersException;
 import com.dacaspex.unogram.game.*;
 
-import java.util.Arrays;
-import java.util.Stack;
-
 public class GameController {
 
     private final String id;
     private final Announcer announcer;
     private final Party party;
     private final Options options;
-    private UnoGame game;
+    private final UnoGame game;
+
     private boolean abandoned;
 
     public GameController(String id, Announcer announcer) {

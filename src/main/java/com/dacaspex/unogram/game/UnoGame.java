@@ -1,5 +1,7 @@
 package com.dacaspex.unogram.game;
 
+import com.dacaspex.unogram.controller.Metrics;
+
 import java.util.List;
 
 public class UnoGame {
@@ -7,6 +9,7 @@ public class UnoGame {
     // TODO: What if no one can play a card?
 
     private final Party party;
+    private final Metrics metrics;
     private Deck pile;
     private Deck discardPile;
     private Suit chosenSuit;
@@ -17,6 +20,7 @@ public class UnoGame {
 
     public UnoGame(Party party) {
         this.party = party;
+        this.metrics = new Metrics();
         this.chosenSuit = null;
         this.winner = null;
         this.started = false;
@@ -25,6 +29,10 @@ public class UnoGame {
 
     public Party getParty() {
         return party;
+    }
+
+    public Metrics getMetrics() {
+        return metrics;
     }
 
     public Deck getDiscardPile() {
@@ -87,6 +95,8 @@ public class UnoGame {
         player.getHand().getCards().remove(card);
         discardPile.getCards().add(card);
 
+        metrics.recordPlayedNormalCard(card);
+
         checkForWinner();
 
         // A normal card is played, reset the chosen suit
@@ -122,6 +132,8 @@ public class UnoGame {
         // Put the card from the hand on the discard pile
         player.getHand().getCards().remove(card);
         discardPile.getCards().add(card);
+
+        metrics.recordPlayedWildCard(card);
 
         checkForWinner();
 
