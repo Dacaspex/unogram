@@ -7,6 +7,12 @@ public enum Emoji {
     GREEN_HEART("\uD83D\uDC9A"),
     BLACK_HEART("\uD83D\uDDA4"),
 
+    GREEN_CIRCLE("\uD83D\uDFE2"),
+    RED_CIRCLE("\uD83D\uDD34"),
+    YELLOW_CIRCLE("\uD83D\uDFE1"),
+    BLUE_CIRCLE("\uD83D\uDD35"),
+    BLACK_CIRCLE("⚫"),
+
     JOYSTICK("\uD83D\uDD79️"),
 
     EXCLAMATION_MARK("❗"),

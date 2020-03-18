@@ -69,15 +69,15 @@ public class TelegramFormatter {
     public String formatSuit(Suit suit) {
         switch (suit) {
             case RED:
-                return String.format("%s red", Emoji.RED_HEART.toString());
+                return String.format("%s red", Emoji.RED_CIRCLE.toString());
             case YELLOW:
-                return String.format("%s yellow", Emoji.YELLOW_HEART.toString());
+                return String.format("%s yellow", Emoji.YELLOW_CIRCLE.toString());
             case GREEN:
-                return String.format("%s green", Emoji.GREEN_HEART.toString());
+                return String.format("%s green", Emoji.GREEN_CIRCLE.toString());
             case BLUE:
-                return String.format("%s blue", Emoji.BLUE_HEART.toString());
+                return String.format("%s blue", Emoji.BLUE_CIRCLE.toString());
             case WILD:
-                return String.format("%s wild", Emoji.BLACK_HEART.toString());
+                return String.format("%s wild", Emoji.BLACK_CIRCLE.toString());
             default:
                 throw new IllegalArgumentException("Missing case for suit");
         }
